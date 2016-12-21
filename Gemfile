@@ -5,17 +5,16 @@ source 'https://rubygems.org'
 gem 'rails', '4.2.6'
 #bootstrap
 gem 'bootstrap-sass', '3.3.6'
+
+
 gem 'rails_12factor'
-#photo stuff
-
-
 group :development, :test do
-  gem 'sqlite3'
+  gem 'sqlite3', '1.3.12'
   gem 'byebug',  '9.0.0', platform: :mri
 end
 
 group :production do
-  gem 'pg’
+  gem 'pg', '0.18.4'
 end
 
 
