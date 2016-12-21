@@ -10,7 +10,7 @@ gem 'rails_12factor'
 
 
 group :development, :test do
-  gem 'pg'
+  gem 'sqlite3'
   gem 'byebug',  '9.0.0', platform: :mri
 end
 
