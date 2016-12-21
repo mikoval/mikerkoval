@@ -10,12 +10,12 @@ gem 'rails_12factor'
 
 
 group :development, :test do
-  gem 'sqlite3', '1.3.12'
+  gem 'sqlite3'
   gem 'byebug',  '9.0.0', platform: :mri
 end
 
 group :production do
-  gem 'pg', '0.18.4'
+  gem 'pg'
 end
 
 
