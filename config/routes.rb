@@ -1,3 +1,5 @@
 Rails.application.routes.draw do
-   root 'application#hello'
+    get '/home', to: 'main#welcome'
+    get '/about', to: 'main#about'
+   root 'main#welcome'
 end
