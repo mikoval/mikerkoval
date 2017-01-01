@@ -6,6 +6,7 @@ gem 'rails', '4.2.6'
 #bootstrap
 gem 'bootstrap-sass', '3.3.6'
 gem 'threejs-rails', git: 'git://github.com/marvindanig/threejs-rails.git'
+gem 'jquery-turbolinks'
 
 gem 'rails_12factor'
 group :development, :test do
