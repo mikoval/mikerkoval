@@ -236,10 +236,26 @@
             cyl1.position.y = -10
             cyl1.position.x = 30
             cyl1.position.z = -40
+            ///
+            mesh2 = new THREE.Mesh( 
+                new THREE.IcosahedronGeometry( 5, 4 ), 
+                material 
+            );
+            mesh2.position.x = 0
+            mesh2.position.z = -40
+            cyl2 = new THREE.Mesh(
+              new THREE.CylinderGeometry(2,.5,16),
+              materialC
+              )
+            cyl2.position.y = -10
+            cyl2.position.x = 0
+            cyl2.position.z = -40
             scene.add( mesh0 );
             scene.add(cyl0)
             scene.add( mesh1 );
             scene.add(cyl1)
+            scene.add( mesh2 );
+            scene.add(cyl2)
             var light = new THREE.PointLight( 0xff0000, 1, 70 );
             light.position.set( -30, 0, -40 );
 
@@ -267,13 +283,13 @@
             sider.rotation.y = Math.PI / -2;
             sider.position.y = -20
             sider.position.z = -50
-            sider.position.x = 50
+            sider.position.x = 0
             scene.add(sider)
             var sidel = new THREE.Mesh(new THREE.PlaneGeometry(100,100), materialF)
             sidel.rotation.y = Math.PI / 2;
             sidel.position.y = -20
             sidel.position.z = -50
-            sidel.position.x = -50
+            sidel.position.x = -0
             scene.add(sidel)
 
             // create the renderer and attach it to the DOM
