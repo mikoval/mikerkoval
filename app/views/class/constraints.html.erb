@@ -1,0 +1,38 @@
+<% provide(:title, "Constraints") %>
+<style>
+body {
+    background-color: white
+}
+.canvas{
+    
+    background-color: lightgrey;
+    margin: auto;
+    text-align: center;
+
+    border-radius: 25px;
+    padding: 20px;
+    margin: 20px;
+}
+p{
+    padding-left: 20%;
+    padding-right:20%;
+    text-align: left;
+}
+</style>
+<div class = "container"> 
+    <div class="canvas col-md-offset-1 col-md-10 col-sm-12">
+        <h1>Tinkertoy</h1>
+        <p>For Animation 4496 we implemented a particle constraint simulator using C++ and OpenGL. The assignment was to keep the first been on the circle and the second bead a fixed distance from the first. We used Explicit Euler as the integrator. A demonstration can be seen below. </p> 
+
+            <video controls="controls" width="400" height="300" name="Video Name" src="https://s3.amazonaws.com/mikerkoval/constraints/TinkertoyBasicEuler.mov"></video>
+
+        <p>Explicit Euler is not a very stable intergrator, making it a weak choice for this simulation. I decided to add a few features to the simulation, one of them being a 4th-Order Runge-Kutte, making it much more stable. </p>
+        <video controls="controls" width="400" height="300" name="Video Name" src="https://s3.amazonaws.com/mikerkoval/constraints/TinkertoyRK4Start.mov"></video>
+        <p>It is still stable after 1,000,000 frames, compared to the 85,000 frames it took to break the explicit Euler.</p>
+        <video controls="controls" width="400" height="300" name="Video Name" src="https://s3.amazonaws.com/mikerkoval/constraints/TinkertoyRK4End.mov"></video> 
+        <p>I added other features such as adding my own particles and constraints, as well as adding an initial force to the particles </p>
+        <video controls="controls" width="400" height="300" name="Video Name" src="https://s3.amazonaws.com/mikerkoval/constraints/TinkertoyCustomFeatures.mov"></video>
+        <p>The simulation can handle large quantities of particles efficiently, without slowing down too much or crashing </p>
+        <video controls="controls" width="400" height="300" name="Video Name" src="https://s3.amazonaws.com/mikerkoval/constraints/TinkertoyComplex.mov"></video>
+    </div>
+</div>
