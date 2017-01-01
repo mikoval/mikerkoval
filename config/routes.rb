@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
   get 'webgl/veronoi'
   get 'webgl/torch'
+  get 'webgl/repel'
+  get 'webgl/rain'
 
     get 'class/constraints'
     get 'class/rigidbody'

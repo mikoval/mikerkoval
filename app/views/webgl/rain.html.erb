@@ -1,0 +1,249 @@
+<html>
+<body style="margin:0px;">
+
+<script src="../lib/three.js"></script>
+<script src="../lib/jquery.min.js"></script>
+<script src="../lib/underscore.js"></script>
+<script src="../lib/ShaderLoader.js"></script>
+
+<script src="../lib/PhysicsRenderer.js"></script>
+
+
+<script>
+  
+
+  var scene , camera , renderer, clock  ;
+
+  var SIZE = 256;
+
+  var simulationB;
+  var mouseX = 1000;
+  var mouseY = 1000;
+  var numColl = 0;
+
+   var simulationUniformsB = {
+  
+    dT:{ type:"f" , value: 0 },
+    t:{ type:"f" , value: 0 },
+    colliderPositions:{ type:"v3v" , value: [] },
+
+    centerPos: { type:"v3" , value: new THREE.Vector3() },
+
+
+  }
+  var renderUniformsB = {
+
+    t_pos:{ type:"t" , value: null }
+
+  }
+  var selected = null;
+
+
+  var shaders = new ShaderLoader( '../shaders' );
+
+  shaders.load( 'ss-water'    , 'sim'    , 'simulation' );
+  shaders.load( 'vs-lookupW'  , 'lookup' , 'vertex'     );
+  shaders.load( 'fs-lookupW'  , 'lookupB' , 'fragment'   );
+  shaders.shaderSetLoaded = function(){
+
+    init();
+    animate();
+
+  }
+
+
+  
+  function init(){
+
+      /*
+
+         Default threejs stuff!
+
+      */
+      scene = new THREE.Scene();
+
+      var ar = window.innerWidth / window.innerHeight;
+
+      camera = new THREE.PerspectiveCamera( 75, ar , 1, 1000 );
+      camera.position.z = 100;
+
+      renderer = new THREE.WebGLRenderer();
+      renderer.setSize( window.innerWidth, window.innerHeight );
+
+      document.body.appendChild( renderer.domElement );
+
+
+     
+      clock = new THREE.Clock();
+
+
+
+      texture = THREE.ImageUtils.loadTexture( "../images/forest.png" );
+      matBG = new THREE.MeshBasicMaterial({map:texture, color:new THREE.Color(0.2,0.2,0.2 )})
+      geoBG = new THREE.PlaneGeometry( 300, 200, 32 );
+      var bg = new THREE.Mesh( geoBG, matBG );
+      scene.add( bg );
+      // RED
+    
+      var geoB = createLookupGeometry( SIZE );
+
+     
+      var matB = new THREE.ShaderMaterial({
+        uniforms: renderUniformsB,
+        vertexShader: shaders.vs.lookup,
+        fragmentShader: shaders.fs.lookupB,
+
+      });
+
+       geometry = new THREE.Geometry();
+       particleCount = 20000;
+
+      var particlesB = new THREE.PointCloud( geoB , matB );
+
+      particlesB.frustumCulled = false;
+
+      scene.add( particlesB );
+      ///////
+
+      var geo = new THREE.CylinderGeometry( 10 , 10, .01, 64 );
+      var mat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(0x492408),
+        transparent: true,
+        opacity: .7
+      });
+
+      for( var i =0; i < 32; i ++ ){
+
+        var mesh = new THREE.Mesh( geo , mat );
+        
+        scene.add( mesh );
+        
+        mesh.position.x = 1000;
+        mesh.position.y = 1000;
+        mesh.position.z = 0;
+        mesh.rotation.x = Math.PI/2;
+        simulationUniformsB.colliderPositions.value.push( mesh.position );
+
+      }
+
+      var numOf = simulationUniformsB.colliderPositions.value.length;
+
+      var ss = shaders.setValue( shaders.ss.sim , 'COLLIDERS' , numOf );
+      
+      simulationB = new PhysicsRenderer( SIZE , ss , renderer );
+      simulationB.setUniforms( simulationUniformsB );
+      simulationB.addBoundTexture( renderUniformsB.t_pos , 'output' );
+      simulationB.resetRand(1000 );
+      window.addEventListener("mousemove", onMouseMove, false);
+      window.addEventListener("mousedown", onMouseDown, false);
+      window.addEventListener("mouseup", onMouseUp, false);
+  }
+
+  function animate(){
+
+    requestAnimationFrame( animate );
+    delta = clock.getDelta();
+
+
+    simulationUniformsB.dT.value = delta;
+    simulationUniformsB.t.value = clock.getElapsedTime();
+
+    simulationUniformsB.centerPos.value = new  THREE.Vector3(mouseX, mouseY, 0.0);
+
+    simulationB.update();
+
+    
+    renderer.render( scene , camera );
+
+  }
+
+
+  function createLookupGeometry( size ){        
+        
+    var geo = new THREE.BufferGeometry();
+    var positions = new Float32Array(  size * size * 3 );
+
+    for ( var i = 0, j = 0, l = positions.length / 3; i < l; i ++, j += 3 ) {
+
+      positions[ j     ] = ( i % size ) / size  ;
+      positions[ j + 1 ] = Math.floor( i / size ) / size ;
+
+    
+    }
+    console.log(positions)
+
+    var posA = new THREE.BufferAttribute( positions , 3 );
+    geo.addAttribute( 'position', posA );
+    
+
+    return geo;
+    
+  }
+   function onMouseMove(event) {
+
+        var vector = new THREE.Vector3();
+
+        vector.set(
+            ( event.clientX / window.innerWidth ) * 2 - 1,
+            - ( event.clientY / window.innerHeight ) * 2 + 1,
+            0.5 );
+
+        vector.unproject( camera );
+
+        var dir = vector.sub( camera.position ).normalize();
+
+        var distance = - camera.position.z / dir.z;
+
+        var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+        if(selected != null){
+          selected.x = pos.x;
+          selected.y = pos.y;
+        }
+        
+    }
+  function onMouseUp(event){
+    selected = null;
+  }
+  function onMouseDown(event){
+
+        var vector = new THREE.Vector3();
+
+        vector.set(
+            ( event.clientX / window.innerWidth ) * 2 - 1,
+            - ( event.clientY / window.innerHeight ) * 2 + 1,
+            0.5 );
+
+        vector.unproject( camera );
+
+        var dir = vector.sub( camera.position ).normalize();
+
+        var distance = - camera.position.z / dir.z;
+
+        var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+        for(i in simulationUniformsB.colliderPositions.value){
+          diffx = pos.x - simulationUniformsB.colliderPositions.value[i].x;
+          diffy = pos.y - simulationUniformsB.colliderPositions.value[i].y;
+          if(diffx * diffx + diffy*diffy < 100 ){
+            selected = simulationUniformsB.colliderPositions.value[i]
+          }
+          
+        }
+        if(selected == null){
+           simulationUniformsB.colliderPositions.value[numColl].x = pos.x;
+           simulationUniformsB.colliderPositions.value[numColl].y = pos.y;
+           if(numColl >30)
+            numColl = 0;
+            else{
+              numColl++;
+            }
+        
+        }
+  }
+
+</script>
+<div style="position:absolute;  z-index:10; background-color: white;opacity: 0.5; right:0px">
+  Click to create objects <br>
+  Click on objects to move them
+</div>
+</body>
+</html>
