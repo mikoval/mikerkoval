@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>Particles-Distance</title>
+        <meta charset="utf-8">
+    </head>
+
+    <body>
+        <div id="container"></div>
+    </body>
+
+
+
+    <script type="x-shader/x-vertex" id="vertexShader">
+
+        void main() {
+           
+
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0 );
+            }
+           
+
+            
+
+        }
+    </script>
+
+    <script type="x-shader/x-vertex" id="fragmentShader">
+
+
+       
+
+        void main() {
+
+           
+            
+
+            gl_FragColor = vec4( 1,1,1,1, 1.0 );
+
+        }
+    </script>
+
+    <script type="text/javascript" id="mainCode">
+        (function() {
+    
+    // 'To actually be able to display anything with Three.js, we need three things:
+    // A scene, a camera, and a renderer so we can render the scene with the camera.'
+    // - http://threejs.org/docs/#Manual/Introduction/Creating_a_scene
+
+    var scene, camera, renderer;
+
+    // I guess we need this stuff too
+    var container, HEIGHT,
+        WIDTH, fieldOfView, aspectRatio,
+        nearPlane, farPlane
+    var material;
+    var selected = null;
+    var point = null;
+    var points = [];
+    var cones = [];
+    alert("Click anywhere to start!\nClick on the dots to move them")
+    init();
+    animate();
+ 
+    function init() {
+        mousex = 0;
+        mousey = 0;
+        HEIGHT = window.innerHeight;
+        WIDTH = window.innerWidth;
+        windowHalfX = WIDTH / 2;
+        windowHalfY = HEIGHT / 2;
+
+        fieldOfView = 75;
+        aspectRatio = WIDTH / HEIGHT;
+        nearPlane = 1;
+        farPlane = 3000;
+
+       
+
+        cameraZ = 50; /*  So, 1000? Yes! move on! */
+        
+        camera = new THREE.PerspectiveCamera(fieldOfView, aspectRatio, nearPlane, farPlane);
+        camera.position.z = cameraZ;
+
+        scene = new THREE.Scene();
+
+        container = document.createElement('div');
+        document.body.appendChild(container);
+        document.body.style.margin = 0;
+        document.body.style.overflow = 'hidden';
+
+      
+        geometry = new THREE.CylinderGeometry(0, 300, 1, 64, 1, true);
+        /*
+        material = new THREE.MeshBasicMaterial({color:0xFF0000});
+        geometry = new THREE.CylinderGeometry(0, 300, 2, 64, 1, true);
+        var cylinder2 = new THREE.Mesh( geometry, material );
+        cylinder2.rotation.x = Math.PI/2;
+        cylinder2.position.x = 20
+        */
+     
+      
+        
+
+
+        
+        
+
+
+      
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio); 
+        renderer.setSize(WIDTH, HEIGHT); 
+        container.appendChild(renderer.domElement); 
+
+      
+
+        /* Event Listeners */
+
+        window.addEventListener('resize', onWindowResize, false);
+        window.addEventListener("mousedown", onMouseDown, false);
+        window.addEventListener("mousemove", onMouseMove, false);
+        window.addEventListener("mouseup", onMouseUp, false);
+       
+    }
+
+    function animate() {
+
+        requestAnimationFrame(animate);
+        render();
+        
+
+    }
+
+    function render() {
+    
+        
+           
+        
+        
+
+        camera.lookAt(scene.position);
+
+        
+        renderer.render(scene, camera);
+    }
+
+    
+    function onWindowResize() {
+
+        windowHalfX = window.innerWidth / 2;
+        windowHalfY = window.innerHeight / 2;
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    function onMouseUp(event) {
+        selected = null;
+        point = null;
+    }
+   function onMouseDown(event) {
+
+        var vector = new THREE.Vector3();
+
+        vector.set(
+            ( event.clientX / window.innerWidth ) * 2 - 1,
+            - ( event.clientY / window.innerHeight ) * 2 + 1,
+            0.5 );
+
+        vector.unproject( camera );
+
+        var dir = vector.sub( camera.position ).normalize();
+
+        var distance = - camera.position.z / dir.z;
+
+        var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+        for(x in points){
+            diffx = points[x].position.x  - pos.x;
+            diffy = points[x].position.y  - pos.y;
+            if(diffx < 1 && diffx > -1){
+                if(diffy < 1 && diffy > -3){
+                    selected = cones[x];
+                    point = points[x]
+                }
+            }
+        }
+        if(!selected)
+            addCylinder(pos.x, pos.y)
+        
+    }
+    function onMouseMove(event) {
+        if(selected){
+            var vector = new THREE.Vector3();
+
+            vector.set(
+                ( event.clientX / window.innerWidth ) * 2 - 1,
+                - ( event.clientY / window.innerHeight ) * 2 + 1,
+                0.5 );
+
+            vector.unproject( camera );
+
+            var dir = vector.sub( camera.position ).normalize();
+
+            var distance = - camera.position.z / dir.z;
+
+            var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+            selected.position.x = pos.x;
+            point.position.x = pos.x;
+            selected.position.y = pos.y;
+            point.position.y = pos.y;
+        
+        }
+        
+        
+    }  
+    function addCylinder(x,y){
+            material = new THREE.MeshBasicMaterial({color: new THREE.Color(Math.random(), Math.random(), Math.random())});
+            var cylinder = new THREE.Mesh( geometry, material );
+            cylinder.rotation.x = Math.PI/2;
+            cylinder.position.x = x
+            cylinder.position.y = y
+            cylinder.position.z = -.5
+            cones.push(cylinder);
+            scene.add( cylinder );
+            
+            var dotGeometry = new THREE.Geometry();
+            dotGeometry.vertices.push(new THREE.Vector3( 0, 0, 0));
+            var dotMaterial = new THREE.PointsMaterial( { size: 20, sizeAttenuation: false } );
+            var dot = new THREE.Points( dotGeometry, dotMaterial );
+            dot.position.x = x;
+            dot.position.y = y;
+            dot.position.z = 0
+            points.push(dot)
+            scene.add( dot );
+           
+        }
+})();
+    </script>
+
+</html>

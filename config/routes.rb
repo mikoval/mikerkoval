@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  get 'webgl/veronoi'
+
     get 'class/constraints'
     get 'class/rigidbody'
     get 'class/fluid'
