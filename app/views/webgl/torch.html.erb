@@ -9,7 +9,7 @@
         <div id="container"></div>
     </body>
 
-    <script src="js/Three.js"></script>
+
 
     <script type="x-shader/x-vertex" id="vertexShader">
     vec3 mod289(vec3 x)
@@ -197,7 +197,7 @@
               uniforms: { 
                   tExplosion: { 
                       type: "t", 
-                      value: THREE.ImageUtils.loadTexture( '/explosion.png' )
+                      value: THREE.ImageUtils.loadTexture( '/images/explosion.png' )
                   },
                   time: { // float initialized to 0
                       type: "f", 
@@ -207,7 +207,7 @@
               vertexShader: document.getElementById( 'vertexShader' ).textContent,
               fragmentShader: document.getElementById( 'fragmentShader' ).textContent
             } );
-            materialC = new THREE.MeshBasicMaterial({ map : THREE.ImageUtils.loadTexture( '/wood.jpg' ) })
+            materialC = new THREE.MeshBasicMaterial({ map : THREE.ImageUtils.loadTexture( '/images/wood.jpg' ) })
             // create a sphere and assign the material
 
             mesh0 = new THREE.Mesh( 
