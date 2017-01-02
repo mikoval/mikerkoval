@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  get 'raytracer/primitives'
+
   get 'webgl/veronoi'
   get 'webgl/torch'
   get 'webgl/repel'
