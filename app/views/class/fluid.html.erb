@@ -13,7 +13,7 @@ body {
     padding: 20px;
     margin: 20px;
 }
-p{
+.text{
     padding-left: 20%;
     padding-right:20%;
     text-align: left;
@@ -22,15 +22,15 @@ p{
 <div class = "container"> 
     <div class="canvas col-md-offset-1 col-md-10 col-sm-12" >
         <h1>Fluids</h1>
-        <p>For Animation 4496 we created a fluid simulation. We used Jos Stam's paper for the calculations http://www.intpowertechcorp.com/GDC03.pdf. We used his work to create a vector field to control the movement of a fluid represented as densities. </p> 
+        <p class = "text">For Animation 4496 we created a fluid simulation. We used Jos Stam's paper for the calculations http://www.intpowertechcorp.com/GDC03.pdf. We used his work to create a vector field to control the movement of a fluid represented as densities. </p> 
 
         <video controls="controls" width="400" height="300" name="Video Name" src="https://s3.amazonaws.com/mikerkoval/fluids/fluidvectorfield.mov"></video>
 
-        <p>I added the ability to create additional walls to block the vector field</p>
+        <p class = "text">I added the ability to create additional walls to block the vector field</p>
         <video controls="controls" width="400" height="300" name="Video Name" src="https://s3.amazonaws.com/mikerkoval/fluids/vectorfieldwalls.mov"></video>
-        <p>By applying the vector field to the density, the result is a fluid simulation</p>
+        <p class = "text">By applying the vector field to the density, the result is a fluid simulation</p>
         <video controls="controls" width="400" height="300" name="Video Name" src="https://s3.amazonaws.com/mikerkoval/fluids/fluids1.mov"></video>
-        <p>With additional walls</p>
+        <p class = "text">With additional walls</p>
         <video controls="controls" width="400" height="300" name="Video Name" src="https://s3.amazonaws.com/mikerkoval/fluids/fluids2finals.mov"></video>
     </div>
 </div>
