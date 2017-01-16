@@ -3,4 +3,8 @@ class RaytracerController < ApplicationController
   end
   def meshes
   end
+  def scenes
+  end
+  def noise
+  end
 end
