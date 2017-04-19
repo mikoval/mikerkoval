@@ -147,16 +147,46 @@ function update(progress) {
   }
   for (j=1;j<width-1;j++) {
     i = 0
-    r = arr[i][j].r * .94 + arr[i + 1][j].r * .02  + arr[i ][j + 1].r * .02 + arr[i][j-1].r * .02
-    g = arr[i][j].g * .94 + arr[i + 1][j].g * .02  + arr[i ][j + 1].g * .02 + arr[i][j-1].g * .02
-    b = arr[i][j].b * .94 + arr[i + 1][j].b * .02  + arr[i ][j + 1].b * .02 + arr[i][j-1].b * .02
+    r = arr[i][j].r * m + arr[i + 1][j].r * d  + arr[i ][j + 1].r * d + arr[i][j-1].r * d
+    g = arr[i][j].g * m + arr[i + 1][j].g * d  + arr[i ][j + 1].g * d + arr[i][j-1].g * d
+    b = arr[i][j].b * m + arr[i + 1][j].b * d  + arr[i ][j + 1].b * d + arr[i][j-1].b * d
     arr2[i][j] = {r:r, g:g, b:b}
-    i = width -1
-    r = arr[i][j].r * .94 + arr[i-1][j].r * .02 + arr[i ][j - 1].r * .02 + arr[i][j-1].r * .02
-    g = arr[i][j].g * .94 + arr[i-1][j].g * .02 + arr[i ][j - 1].g * .02 + arr[i][j-1].g * .02
-    b = arr[i][j].b * .94 + arr[i-1][j].b * .02 + arr[i ][j - 1].b * .02 + arr[i][j-1].b * .02
+    i = width - 1
+    r = arr[i][j].r * m + arr[i-1][j].r * d + arr[i ][j - 1].r * d + arr[i][j-1].r * d
+    g = arr[i][j].g * m + arr[i-1][j].g * d + arr[i ][j - 1].g * d + arr[i][j-1].g * d
+    b = arr[i][j].b * m + arr[i-1][j].b * d + arr[i ][j - 1].b * d + arr[i][j-1].b * d
     arr2[i][j] = {r:r, g:g, b:b}
   }
+  d = diffusion
+  m = 1-(diffusion * 2)
+
+
+  r = arr[0][0].r * m + arr[1][0].r * d  + arr[0][1].r * d
+  g = arr[0][0].g * m + arr[1][0].g * d  + arr[0][1].g * d
+  b = arr[0][0].b * m + arr[1][0].b * d  + arr[0][1].b * d 
+  arr2[0][0] = {r:r, g:g, b:b}
+
+  r = arr[width-1][0].r * m + arr[width - 2][0].r * d  + arr[width -1][1].r * d
+  g = arr[width-1][0].g * m + arr[width - 2][0].g * d  + arr[width -1][1].g * d
+  b = arr[width-1][0].b * m + arr[width - 2][0].b * d  + arr[width -1][1].b * d 
+  arr2[width-1][0] = {r:r, g:g, b:b}
+
+  r = arr[width-1][height-1].r * m + arr[width-2][height-1].r * d  + arr[width-1][height-2].r * d
+  g = arr[width-1][height-1].g * m + arr[width-2][height-1].g * d  + arr[width-1][height-2].g * d
+  b = arr[width-1][height-1].b * m + arr[width-2][height-1].b * d  + arr[width-1][height-2].b * d 
+  arr2[width-1][height-1] = {r:r, g:g, b:b}
+
+  r = arr[0][height-1].r * m + arr[1][height-1].r * d  + arr[0][height-2].r * d
+  g = arr[0][height-1].g * m + arr[1][height-1].g * d  + arr[0][height-2].g * d
+  b = arr[0][height-1].b * m + arr[1][height-1].b * d  + arr[0][height-2].b * d 
+  arr2[0][height-1] = {r:r, g:g, b:b}
+
+
+
+
+
+
+
 
 }
 
@@ -164,7 +194,11 @@ function draw() {
   
   for (i=0;i<width;i++) {
     for (j=0; j <height;j++) {
+
         c = arr[i][j]
+        if(c.r < 1) {
+          console.log(i + ", " + j + " still not red")
+        }
         context.fillStyle = rgbToHex(c.r|0, c.g|0, c.b|0);
 
         context.fillRect(i*5, j*5, 5, 5);
