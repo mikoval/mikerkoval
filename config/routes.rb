@@ -14,5 +14,7 @@ Rails.application.routes.draw do
 
     get '/home', to: 'main#welcome'
     get '/about', to: 'main#about'
+
+      get 'simulation/diffusion'
     root 'main#welcome'
 end

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+
+
+
+<html>
+<body>
+<style>
+body{
+  margin:10px;
+}
+</style>
+<canvas id="Canvas" width= "600px" height = "600px">
+Your browser does not support the canvas element.
+</canvas>
+<br>
+Diffusion Rate: <input type="range" id="diffusion-slider" style = "width: 100px; display: inline" value="50">
+
+<h3>Instruction</h3>
+<p>Color is created at mouse position</p>
+<p>Click to have color be generated from that pixel</p>
+<p>Use "r", "g", "b" keys to change colors</p>
+<p>One pixels can generate multiple colors by clicking on it with different colors set</p>
+
+
+
+
+
+
+<script>
+var canvas = document.getElementById("Canvas");
+var context = canvas.getContext("2d");
+var color = {r: 255, g:0, b:0}
+
+var width = 120;
+var height = 120;
+var arr = new Array();
+var fountains = new Array();
+var posx;
+var posy;
+var diffusion = 0.02
+for (i=0;i<width;i++) {
+    arr[i] = new Array();
+    for (j=0; j <height;j++) {
+        arr[i][j]={r:0,g:0,b:0};
+    }
+}
+
+
+function addColor(e) {
+    var pos = getMousePos(canvas, e);
+    posx = pos.x;
+    posy = pos.y;
+    
+    
+    
+}
+function setColor(e){
+    if(e.key == "r"){ color = {r: 255, g:0,   b:0}}
+    if(e.key == "g"){ color = {r: 0,   g:255, b:0}}
+    if(e.key == "b"){ color = {r: 0,   g:0,   b:255}}
+}
+
+function addFountain(e){
+    contains = false;
+    for(i=0; i < fountains.length; i++){
+        if(fountains[i].x == (posx/5|0) && fountains[i].y == (posy/5|0)){
+          
+            fountains[i].color.r = fountains[i].color.r + color.r;
+            fountains[i].color.g = fountains[i].color.g + color.g;
+            fountains[i].color.b = fountains[i].color.b + color.b;
+
+            if(fountains[i].color.r > 255) {fountains[i].color.r = 255}
+            if(fountains[i].color.g > 255) {fountains[i].color.g = 255} 
+            if(fountains[i].color.b > 255) {fountains[i].color.b = 255}
+            contains = true
+        }
+    }
+    if(!contains){
+        fountains.push({x:posx/5 | 0, y:posy/5 | 0, color:{r:color.r, g:color.g, b:color.b}})
+    }
+    console.log(fountains)
+
+    
+}
+
+window.addEventListener('mousemove', addColor, false);
+window.addEventListener('keypress', setColor, false);
+window.addEventListener('click', addFountain, false);
+
+
+function getMousePos(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+      x: evt.clientX - rect.left,
+      y: evt.clientY - rect.top
+    };
+}
+ console.log(diffusion)
+function update(progress) {
+  // Update the state of the world for the elapsed time since last render
+
+  if(posx > 0 && posx < 600 && posy > 0 && posy < 600){
+        arr[posx/5|0][posy/5|0] = color;
+   }
+  
+  arr2 = arr.slice()
+  for (i=1;i<width-1;i++) {
+    for (j=1; j <height-1;j++) {
+        var fountain = false
+        for(k=0; k < fountains.length; k++){
+            f = fountains[k]
+            if(f.x == i && f.y == j){
+                r = f.color.r;
+                g = f.color.g;
+                b = f.color.b;
+                arr2[i][j] = {r:r, g:g, b:b}
+                fountain = true;
+            }
+        }
+        if(!fountain){
+            d = diffusion
+            m = 1-(diffusion * 4)
+
+            r = arr[i][j].r * m+ arr[i + 1][j].r * d + arr[i-1][j].r * d + arr[i ][j + 1].r * d + arr[i][j-1].r * d
+            g = arr[i][j].g * m+ arr[i + 1][j].g * d + arr[i-1][j].g * d + arr[i ][j + 1].g * d + arr[i][j-1].g * d
+            b = arr[i][j].b * m+ arr[i + 1][j].b * d + arr[i-1][j].b * d + arr[i ][j + 1].b * d + arr[i][j-1].b * d
+          
+            arr2[i][j] = {r:r, g:g, b:b}
+        }
+        
+    }
+  }
+  d = diffusion
+  m = 1-(diffusion * 3)
+  for (i=1;i<width-1;i++) {
+    j = 0
+    r = arr[i][j].r * m+ arr[i + 1][j].r * d + arr[i-1][j].r * d + arr[i ][j + 1].r * d 
+    g = arr[i][j].g * m+ arr[i + 1][j].g * d + arr[i-1][j].g * d + arr[i ][j + 1].g * d 
+    b = arr[i][j].b * m+ arr[i + 1][j].b * d + arr[i-1][j].b * d + arr[i ][j + 1].b * d 
+    arr2[i][j] = {r:r, g:g, b:b}
+    j = width -1
+    r = arr[i][j].r * m+ arr[i + 1][j].r * d + arr[i-1][j].r * d + arr[i ][j - 1].r * d
+    g = arr[i][j].g * m+ arr[i + 1][j].g * d + arr[i-1][j].g * d + arr[i ][j - 1].g * d
+    b = arr[i][j].b * m+ arr[i + 1][j].b * d + arr[i-1][j].b * d + arr[i ][j - 1].b * d
+    arr2[i][j] = {r:r, g:g, b:b}
+  }
+  for (j=1;j<width-1;j++) {
+    i = 0
+    r = arr[i][j].r * .94 + arr[i + 1][j].r * .02  + arr[i ][j + 1].r * .02 + arr[i][j-1].r * .02
+    g = arr[i][j].g * .94 + arr[i + 1][j].g * .02  + arr[i ][j + 1].g * .02 + arr[i][j-1].g * .02
+    b = arr[i][j].b * .94 + arr[i + 1][j].b * .02  + arr[i ][j + 1].b * .02 + arr[i][j-1].b * .02
+    arr2[i][j] = {r:r, g:g, b:b}
+    i = width -1
+    r = arr[i][j].r * .94 + arr[i-1][j].r * .02 + arr[i ][j - 1].r * .02 + arr[i][j-1].r * .02
+    g = arr[i][j].g * .94 + arr[i-1][j].g * .02 + arr[i ][j - 1].g * .02 + arr[i][j-1].g * .02
+    b = arr[i][j].b * .94 + arr[i-1][j].b * .02 + arr[i ][j - 1].b * .02 + arr[i][j-1].b * .02
+    arr2[i][j] = {r:r, g:g, b:b}
+  }
+
+}
+
+function draw() {
+  
+  for (i=0;i<width;i++) {
+    for (j=0; j <height;j++) {
+        c = arr[i][j]
+        context.fillStyle = rgbToHex(c.r|0, c.g|0, c.b|0);
+
+        context.fillRect(i*5, j*5, 5, 5);
+    }
+  }
+}
+
+function loop(timestamp) {
+  var progress = timestamp - lastRender
+
+  update(progress)
+  draw()
+
+  lastRender = timestamp
+  window.requestAnimationFrame(loop)
+}
+var lastRender = 0
+window.requestAnimationFrame(loop)
+
+
+function componentToHex(c) {
+
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+}
+
+function rgbToHex(r, g, b) {
+
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+
+$("#diffusion-slider").on("change", function(){
+    diffusion = $(this).val()/300.0;
+  
+})
+</script>
+
+</body>
+</html>
+
+
