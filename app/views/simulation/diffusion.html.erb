@@ -105,7 +105,6 @@ function getMousePos(canvas, evt) {
       y: evt.clientY - rect.top
     };
 }
- console.log(diffusion)
 function update(progress) {
   // Update the state of the world for the elapsed time since last render
 
@@ -114,17 +113,22 @@ function update(progress) {
    }
   
   arr2 = arr.slice()
-  console.log(arr[50][50].g)
   if(zombies){
     for (i=1;i<width-1;i++) {
       for (j=1; j <height-1;j++) {
+
         var c = arr[i][j] 
         var amount = c.g * zombieRate;
+        if(amount != 0){console.log("amount " + amount)}
+        if(c.g != 0){console.log("color value = " +  c.g)}
+
         if(amount > c.r){amount = c.r;}
         c.r = c.r - amount;
         if(c.r < 0){c.r = 0;}
+        if(c.r > 255){c.r = 255;}
         c.g = c.g + amount;
         if(c.g >255 ){c.g = 255;}
+        if(c.g <0 ){c.g = 0;}
         i
       }
     }
