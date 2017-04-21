@@ -119,8 +119,7 @@ function update(progress) {
 
         var c = arr[i][j] 
         var amount = c.g * zombieRate;
-        if(amount != 0){console.log("amount " + amount)}
-        if(c.g != 0){console.log("color value = " +  c.g)}
+ 
 
         if(amount > c.r){amount = c.r;}
         c.r = c.r - amount;
