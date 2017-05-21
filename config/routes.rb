@@ -15,6 +15,7 @@ Rails.application.routes.draw do
     get '/home', to: 'main#welcome'
     get '/about', to: 'main#about'
 
-      get 'simulation/diffusion'
+    get 'simulation/diffusion'
+    get 'games/minesweeper'
     root 'main#welcome'
 end
