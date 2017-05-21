@@ -1,4 +1,9 @@
 <html>
+<style>
+body{
+  margin:10px;
+}
+</style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
 <body>
 <canvas id="Canvas" width= "600px" height = "600px">
@@ -10,7 +15,9 @@ Dimensions: <input type="range" id="dimension-slider" style = "width: 100px; dis
 
 Bombs: <input type="range" id="bombs-slider" style = "width: 100px; display: inline-block" value="50"> <p style = "display:inline-block" id = "bombs-text">100</p>
 <br>
-<button type = "button" id = "recommend">Recommend Move</button><input type = "checkbox" id = "auto-play">Auto Play</button>
+<input type = "checkbox" id = "auto-play">Auto Play</button>
+<br>
+<button type = "button" id = "recommend">Recommend Move</button>
 <br>
 <button type = "button" id = "restart">Restart</button>
 
