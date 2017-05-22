@@ -1,19 +1,14 @@
 <html>
-<style>
-body{
-  margin:10px;
-}
-</style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
 <body>
 <canvas id="Canvas" width= "600px" height = "600px">
 Your browser does not support the canvas element.
 </canvas>
 <br>
-Dimensions: <input type="range" id="dimension-slider" style = "width: 100px; display: inline-block" value="50"> <p style = "display:inline-block" id = "dimension-text">20x20</p>
+Dimensions: <input type="range" id="dimension-slider" style = "width: 100px; display: inline-block" value="50"> <p style = "display:inline-block" id = "dimension-text">16x16</p>
 <br>
 
-Bombs: <input type="range" id="bombs-slider" style = "width: 100px; display: inline-block" value="50"> <p style = "display:inline-block" id = "bombs-text">100</p>
+Bombs: <input type="range" id="bombs-slider" style = "width: 100px; display: inline-block" value="50"> <p style = "display:inline-block" id = "bombs-text">40</p>
 <br>
 <input type = "checkbox" id = "auto-play">Auto Play</button>
 <br>
@@ -27,15 +22,16 @@ Bombs: <input type="range" id="bombs-slider" style = "width: 100px; display: inl
     <p style="display:inline-block" >Win rate: </p> <p id = "win-rate" style="display:inline-block" > N/A</p><br>
 
 </div>
+<img border="0" id = "bombimg" alt="bomb" src="https://lh3.ggpht.com/YdRAkpeukPMqgxWjvYFoq3xftAP6ztWlNWBsci-S-XTM-0NFuqUpPZRafLM0oCbu63U=w300" style = " display:none">
 
 </body>
 <script>
 var canvas = document.getElementById("Canvas");
 var context = canvas.getContext("2d");
-var width = 20;
-var height = 20;
+var width = 16;
+var height = 16;
 var size = 600/width;
-var bombs = 100;
+var bombs = 40;
 
 var autoplay = false;
 var wins = 0;
@@ -82,7 +78,7 @@ function select(x, y){
     if(!grid[cellx][celly].bomb){
         if(grid[cellx][celly].neighbors == 0){
             context.fillStyle = "#FFFFFF";
-            context.fillRect(cellx*size + 1, celly*size + 1, size-2, size-2 )
+            context.fillRect(cellx*size , celly*size , size, size )
             if(x >0 && y > 0){select(x-1, y-1);} 
             if(y > 0)        {select(x, y-1); }
             if(x <width-1 && y > 0){select(x+1, y-1);}
@@ -96,7 +92,7 @@ function select(x, y){
         }
         else{
             context.fillStyle = "#FFFFFF";
-            context.fillRect(cellx*size + 1, celly*size + 1, size-2, size-2 )
+            context.fillRect(cellx*size , celly*size , size, size )
             if(grid[cellx][celly].neighbors == 1){context.fillStyle = "blue"; }
             if(grid[cellx][celly].neighbors == 2){context.fillStyle = "green"; }
             if(grid[cellx][celly].neighbors == 3){context.fillStyle = "red"; }
@@ -119,7 +115,8 @@ function select(x, y){
         }
         else{
             solve();
-            alert("Game Over");
+            setTimeout(function(){alert("Game Over");})
+            
         }
         updateScore();
     }
@@ -130,7 +127,7 @@ function select(x, y){
         }
         else{
             solve();
-            alert("You Win");
+            setTimeout(function(){alert("You Win");})
         }
         updateScore();
     }
@@ -195,12 +192,18 @@ function solve(){
             cellx = x;
             celly = y;
             if(grid[i][j].bomb){
-                context.fillStyle = "#FF0000";
-                context.fillRect(x*size + 1, y*size + 1, size-2, size-2 )
+                
+                context.fillStyle = "#FFFFFF";
+                context.fillRect(x*size , y*size, size, size )
+                var img=document.getElementById("bombimg");
+                img.width = size;
+                img.height = size;
+                console.log(img);
+                context.drawImage(img,x*size,y*size,size,size);
             }
             else{
                 context.fillStyle = "#FFFFFF";
-                context.fillRect(cellx*size + 1, celly*size + 1, size-2, size-2 )
+                context.fillRect(cellx*size , celly*size , size, size )
                 if(grid[cellx][celly].neighbors == 1){context.fillStyle = "blue"; }
                 if(grid[cellx][celly].neighbors == 2){context.fillStyle = "green"; }
                 if(grid[cellx][celly].neighbors == 3){context.fillStyle = "red"; }
@@ -230,7 +233,7 @@ function display(){
     }
 }
 $("#dimension-slider").on("change", function(){
-    var val = Math.round($(this).val() / 2.5); 
+    var val = Math.round($(this).val() / 3.125); 
     if (val < 4){ val = 4;}
     $("#dimension-text").text(val + "x" + val);
     width = val;
@@ -243,7 +246,7 @@ $("#dimension-slider").on("change", function(){
 })
 
 $("#bombs-slider").on("change", function(){
-    var val = Math.round(width * height *   Math.round($(this).val() / 2) / 100.0); 
+    var val = Math.round(width * height *   Math.round($(this).val() / 3) / 100.0); 
     
     $("#bombs-text").text(val);
     bombs = val;
@@ -328,17 +331,83 @@ function getCombinations(edges,numbers){
     var length = edges.length;
     combinationsArr = [];
     
-    createCombination(new Array(), length);
+    createCombination(new Array(), length, edges, numbers);
 
     combinationsArr = validCombinations(combinationsArr, edges, numbers);
     return combinationsArr;
     
 }
+function validCombination(arr, edges, numbers){
+    var edgescopy = edges.slice();
+    var numberscopy = numbers.slice();
+    for(i = 0; i< edges.length; i++){
+        if(i < arr.length){
+            edgescopy[i].b = arr[i];
+        }
+        else{
+            edgescopy[i].b = -1;
+        }
+    }
+    for (numb = 0; numb < numbers.length; numb++){
+        var nx = numbers[numb].x;
+        var ny = numbers[numb].y;
+        var count = 0;
+        var free = 0;
+        for (edge  = 0; edge < edges.length; edge++){
+            var ex = edges[edge].x;
+            var ey = edges[edge].y;
+            b = edgescopy[edge].b;
+            var n = false;
+            var f = false;
+            if(nx - 1 == ex && ny - 1 == ey  && b > 0){n = true;}
+            if(nx - 1 == ex && ny  == ey && b > 0){n = true;}
+            if(nx - 1 == ex && ny + 1 == ey && b > 0){n = true;}
+
+            if(nx == ex && ny - 1 == ey && b > 0){n = true;}
+            
+            if(nx == ex && ny + 1 == ey && b > 0){n = true;}
+
+            if(nx + 1 == ex && ny - 1 == ey && b > 0){n = true;}
+            if(nx + 1 == ex && ny  == ey && b > 0){n = true;}
+            if(nx + 1 == ex && ny + 1 == ey && b > 0){n = true;}
+            //////////////
+            if(nx - 1 == ex && ny - 1 == ey  && b < 0){f = true;}
+            if(nx - 1 == ex && ny  == ey && b < 0){f = true;}
+            if(nx - 1 == ex && ny + 1 == ey && b < 0){f = true;}
+
+            if(nx == ex && ny - 1 == ey && b < 0){f = true;}
+            
+            if(nx == ex && ny + 1 == ey && b < 0){f = true;}
+
+            if(nx + 1 == ex && ny - 1 == ey && b < 0){f = true;}
+            if(nx + 1 == ex && ny  == ey && b <  0){f = true;}
+            if(nx + 1 == ex && ny + 1 == ey && b < 0){f = true;}
+            if(n){
+                count = count + 1;
+            }
+            if(f){
+                free = free + 1;
+            }
+        }
+       
+        numberscopy[numb].neigh = count;
+        numberscopy[numb].free = free;
+    }
+
+    for (i = 0; i < numberscopy.length; i++){
+        if(numberscopy[i].neigh >  numberscopy[i].number || numberscopy[i].neigh + numberscopy[i].free < numberscopy[i].number ){
+            return false;
+        }
+    }
+    return true;
+
+    
+}
 function validCombinations(arr, edges, numbers){
     var ret = []
     for (comb  = 0; comb < arr.length; comb++){
-        edgescopy = edges.slice();
-        numberscopy = numbers.slice();
+        var edgescopy = edges.slice();
+        var numberscopy = numbers.slice();
         for(i = 0; i< edges.length; i++){
             edgescopy[i].b = arr[comb][i];
         }
@@ -383,20 +452,23 @@ function validCombinations(arr, edges, numbers){
     }
     return ret;
 }
-function createCombination(combination, length){
-
+function createCombination(combination, length, edges, numbers){
+    if(!validCombination(combination, edges, numbers)){
+        return;
+    }
     if(combination.length == length)
     {
         combinationsArr.push(combination)
         return;
     }
+    
     var newComb1 = combination.slice();
     var newComb2 = combination.slice();
     newComb1.push(0);
     newComb2.push(1);
 
-    createCombination(newComb1, length);
-    createCombination(newComb2, length);
+    createCombination(newComb1, length, edges, numbers);
+    createCombination(newComb2, length, edges, numbers);
 }
 function getInside(board){
     var arr = [];
