@@ -37,32 +37,21 @@ var width = 16;
 var height = 16;
 var size = 600/width;
 var bombs = 40;
-
 var autoplay = false;
 var wins = 0;
 var losses = 0;
-
-
-
 var grid;
 createWorld();
-
 function createWorld(){
     grid = new Array();
     context.fillStyle = "#FFFFFF";
     context.fillRect(0, 0, 600, 600);
-
     
     createGrid(grid);
-
     addBombs();
-
     calculateNeighbors();
-
     display();
 }
-
-
 window.addEventListener('click', click, false);
 function click(e){
     var pos = getMousePos(canvas, e);
@@ -79,7 +68,6 @@ function select(x, y){
     grid[x][y].shown = true;
     var cellx = x;
     var celly = y;
-
     if(!grid[cellx][celly].bomb){
         if(grid[cellx][celly].neighbors == 0){
             context.fillStyle = "#FFFFFF";
@@ -87,10 +75,8 @@ function select(x, y){
             if(x >0 && y > 0){select(x-1, y-1);} 
             if(y > 0)        {select(x, y-1); }
             if(x <width-1 && y > 0){select(x+1, y-1);}
-
             if(x >0 )       {select(x-1, y);}
             if(x < width -1){select(x+1, y);}
-
             if(x >0 && y < height -1){select(x-1, y+1); }
             if(y < height -1)        {select(x, y+1); }
             if(x < width -1 && y < height -1){select(x+1, y+1);}
@@ -108,9 +94,6 @@ function select(x, y){
             if(grid[cellx][celly].neighbors == 8){context.fillStyle = "gray"; }
             context.font = size + "px Arial";
             context.fillText(grid[cellx][celly].neighbors,cellx*size + size/5,(celly+1)  * size  -size/10) ;
-
-
-
         }
     }
     else{
@@ -125,7 +108,7 @@ function select(x, y){
         }
         updateScore();
     }
-    if(getUnknownCount(grid) == bombs){
+    if(getUnknownCount(grid) + getKnown(grid) == bombs){
         wins = wins + 1
         if(autoplay){
             createWorld();
@@ -136,11 +119,8 @@ function select(x, y){
         }
         updateScore();
     }
-
 }
-
 function calculateNeighbors(){
-
     for (i=0;i<grid.length;i++) {
         for (j=0; j <grid[0].length;j++) {
             
@@ -149,14 +129,11 @@ function calculateNeighbors(){
                 if(i>0 && j > 0 && grid[i-1][j-1].bomb){count = count + 1;}
                 if(i > 0 && grid[i-1][j].bomb){count = count + 1;}
                 if(i > 0 && j < width -1  && grid[i-1][j+1].bomb){count = count + 1;}
-
                 if(j > 0 && grid[i][j-1].bomb){count = count + 1;}
                 if(j < width -1 && grid[i][j+1].bomb){count = count + 1;}
-
                 if(i < height -1  && j > 0 &&  grid[i+1][j-1].bomb){count = count + 1;}
                 if(i < height -1  && grid[i+1][j].bomb){count = count + 1;}
                 if(i < height -1  && j < width -1  && grid[i+1][j+1].bomb){count = count + 1;}
-
                 grid[i][j].neighbors = count;
             }
         }
@@ -177,7 +154,7 @@ function createGrid(arr){
     for (i=0;i<width;i++) {
         arr[i] = new Array();
         for (j=0; j <height;j++) {
-            arr[i][j]= {x: i, y:j, shown: false};
+            arr[i][j]= {x: i, y:j, shown: false, knownBomb :false};
         }
     }
 }
@@ -189,7 +166,6 @@ function getMousePos(canvas, evt) {
     };
 }
 function solve(){
-
     for (i=0;i<grid.length;i++) {
         for (j=0; j <grid[0].length;j++) {
             var x = grid[i][j].x;
@@ -203,7 +179,7 @@ function solve(){
                 var img=document.getElementById("bombimg");
                 img.width = size;
                 img.height = size;
-                console.log(img);
+ 
                 context.drawImage(img,x*size,y*size,size,size);
             }
             else{
@@ -244,12 +220,9 @@ $("#dimension-slider").on("change", function(){
     width = val;
     height = val;
     size = 600/width;
-
     $("#bombs-slider").trigger("change")
     createWorld();
-
 })
-
 $("#bombs-slider").on("change", function(){
     var val = Math.round(width * height *   Math.round($(this).val() / 3) / 100.0); 
     
@@ -260,14 +233,13 @@ $("#bombs-slider").on("change", function(){
 $("#restart").on("click", function(){
     createWorld();
 })
-
 $("#recommend").on("click", function(){
-
-   var position = getRecommended();
-   context.fillStyle = "#00FF00";
-    context.fillRect(position.x*size + 1, position.y*size + 1, size-2, size-2 )
-
-
+    var position = getRecommended();
+    for(i = 0; i < position.length; i++){
+		context.fillStyle = "#00FF00";
+		context.fillRect(position[i].x*size + 1, position[i].y*size + 1, size-2, size-2 )
+	}
+   
 })
 $("#auto-play").on("change", function(){
     autoplay = $(this)[0].checked;
@@ -275,21 +247,53 @@ $("#auto-play").on("change", function(){
 function getRecommended(){
     
     var unknownCount = getUnknownCount(grid);
-
     var board = grid.slice();
     var inside =  getInside(board);
     var edges = getEdges(board);
+	var known = getKnown(board);
+
     var numbers = getNumbers(board);
     var combinations = getCombinations(edges, numbers);
     
     var probs = getProbabilities(combinations, unknownCount, bombs);
-
     var minProbsInd = minimumProbability(probs);
-
-    if(minProbsInd == edges.length){return {x: inside[0].x, y:inside[0].y }}
-    else{return {x: edges[minProbsInd].x, y:edges[minProbsInd].y }}
+	
+	if(autoplay){setKnown(probs, edges)};
+    if(minProbsInd[0] == edges.length){return [{x: inside[0].x, y:inside[0].y }]}
+    else{
+		var arr = [];
+		for (var i = 0 ; i < minProbsInd.length; i++){
+			arr.push({x: edges[minProbsInd[i]].x, y:edges[minProbsInd[i]].y })
+		}
+	return arr;
+	}
 }
+function getKnown(arr){
+    count = 0;
+    for (i=0;i<arr.length;i++) {
+        for (j=0; j <arr[0].length;j++) {
+            if(arr[i][j].knownBomb){
+                count = count + 1;
+            }
+        }
+    }
+    return count;
+}
+function setKnown(probs, edges){
+	for(var i = 0; i < probs.length -1; i++){
+	
+		if(probs[i]==1){
+			edge = edges[i]
+			grid[edge.x][edge.y].knownBomb = true;
+			context.fillStyle = "#FF0000";
+            context.fillRect(edge.x*size , edge.y*size, size, size )
+			///draw red
+		}
+	}
+}
+
 function minimumProbability(probs){
+	arr = []
     prob = 2;
     probind = -1
     for(var i = 0; i < probs.length; i++){
@@ -298,21 +302,29 @@ function minimumProbability(probs){
             probind = i;
         }
     }
-    return probind;
+	if(prob == 0){
+		for(var i = 0; i < probs.length; i++){
+			if(probs[i] == 0){
+				arr.push(i);
+			}
+		}
+	}
+	else{
+		arr.push(probind);
+	}
+    return arr;
 }
 function getProbabilities(combinations, unknownCount, bombsCount){
+	
     arr = new Array(combinations[0].length);
     var count = 0;
     for(var i =0;  i < arr.length; i++ ){arr[i] = 0}
     for(var i = 0; i < combinations.length; i++){
-
         for (var j = 0; j < combinations[i].length; j++){
         
-
             if(combinations[i][j] == 1){
                 arr[j] = arr[j] + 1
                 count = count + 1;
-
             }
         }
     }
@@ -320,24 +332,22 @@ function getProbabilities(combinations, unknownCount, bombsCount){
     for(var i =0;  i < arr.length; i++ ){
         arr[i] = arr[i] / combinations.length;
     }
-
-
     
+	
     var remainingProb;
     if(unknownCount - arr.length == 0){remainingProb = 100;}
     else{ remainingProb = (bombsCount - avg)/(unknownCount - arr.length);}
  
     arr.push(remainingProb);
+	
+	
     return arr;
-
-
 }
 function getCombinations(edges,numbers){
     var length = edges.length;
     combinationsArr = [];
     
     createCombination(new Array(), length, edges, numbers);
-
     combinationsArr = validCombinations(combinationsArr, edges, numbers);
     return combinationsArr;
     
@@ -367,11 +377,9 @@ function validCombination(arr, edges, numbers){
             if(nx - 1 == ex && ny - 1 == ey  && b > 0){n = true;}
             if(nx - 1 == ex && ny  == ey && b > 0){n = true;}
             if(nx - 1 == ex && ny + 1 == ey && b > 0){n = true;}
-
             if(nx == ex && ny - 1 == ey && b > 0){n = true;}
             
             if(nx == ex && ny + 1 == ey && b > 0){n = true;}
-
             if(nx + 1 == ex && ny - 1 == ey && b > 0){n = true;}
             if(nx + 1 == ex && ny  == ey && b > 0){n = true;}
             if(nx + 1 == ex && ny + 1 == ey && b > 0){n = true;}
@@ -379,11 +387,9 @@ function validCombination(arr, edges, numbers){
             if(nx - 1 == ex && ny - 1 == ey  && b < 0){f = true;}
             if(nx - 1 == ex && ny  == ey && b < 0){f = true;}
             if(nx - 1 == ex && ny + 1 == ey && b < 0){f = true;}
-
             if(nx == ex && ny - 1 == ey && b < 0){f = true;}
             
             if(nx == ex && ny + 1 == ey && b < 0){f = true;}
-
             if(nx + 1 == ex && ny - 1 == ey && b < 0){f = true;}
             if(nx + 1 == ex && ny  == ey && b <  0){f = true;}
             if(nx + 1 == ex && ny + 1 == ey && b < 0){f = true;}
@@ -398,14 +404,12 @@ function validCombination(arr, edges, numbers){
         numberscopy[numb].neigh = count;
         numberscopy[numb].free = free;
     }
-
     for (i = 0; i < numberscopy.length; i++){
         if(numberscopy[i].neigh >  numberscopy[i].number || numberscopy[i].neigh + numberscopy[i].free < numberscopy[i].number ){
             return false;
         }
     }
     return true;
-
     
 }
 function validCombinations(arr, edges, numbers){
@@ -430,11 +434,9 @@ function validCombinations(arr, edges, numbers){
                 if(nx - 1 == ex && ny - 1 == ey  && b){n = true;}
                 if(nx - 1 == ex && ny  == ey && b){n = true;}
                 if(nx - 1 == ex && ny + 1 == ey && b){n = true;}
-
                 if(nx == ex && ny - 1 == ey && b){n = true;}
                 
                 if(nx == ex && ny + 1 == ey && b){n = true;}
-
                 if(nx + 1 == ex && ny - 1 == ey && b){n = true;}
                 if(nx + 1 == ex && ny  == ey && b){n = true;}
                 if(nx + 1 == ex && ny + 1 == ey && b){n = true;}
@@ -471,7 +473,6 @@ function createCombination(combination, length, edges, numbers){
     var newComb2 = combination.slice();
     newComb1.push(0);
     newComb2.push(1);
-
     createCombination(newComb1, length, edges, numbers);
     createCombination(newComb2, length, edges, numbers);
 }
@@ -480,14 +481,12 @@ function getInside(board){
      for (i=0;i<board.length;i++) {
         for (j=0; j <board[0].length;j++) {
             edge = false;
-            if(!board[i][j].shown){
+            if(!board[i][j].shown && !board[i][j].knownBomb){
                 if(i>0 && j > 0 && board[i-1][j-1].shown){edge = true;}
                 if(i > 0 && board[i-1][j].shown){edge = true;}
                 if(i > 0 && j < width -1  && board[i-1][j+1].shown){edge = true;}
-
                 if(j > 0 && board[i][j-1].shown){edge = true;}
                 if(j < width -1 && board[i][j+1].shown){edge = true;}
-
                 if(i < height -1  && j > 0 &&  board[i+1][j-1].shown){edge = true;}
                 if(i < height -1  && board[i+1][j].shown){edge = true;}
                 if(i < height -1  && j < width -1  && board[i+1][j+1].shown){edge = true;}
@@ -504,14 +503,12 @@ function getEdges(board){
      for (i=0;i<board.length;i++) {
         for (j=0; j <board[0].length;j++) {
             edge = false;
-            if(!board[i][j].shown){
+            if(!board[i][j].shown  && !board[i][j].knownBomb){
                 if(i>0 && j > 0 && board[i-1][j-1].shown){edge = true;}
                 if(i > 0 && board[i-1][j].shown){edge = true;}
                 if(i > 0 && j < width -1  && board[i-1][j+1].shown){edge = true;}
-
                 if(j > 0 && board[i][j-1].shown){edge = true;}
                 if(j < width -1 && board[i][j+1].shown){edge = true;}
-
                 if(i < height -1  && j > 0 &&  board[i+1][j-1].shown){edge = true;}
                 if(i < height -1  && board[i+1][j].shown){edge = true;}
                 if(i < height -1  && j < width -1  && board[i+1][j+1].shown){edge = true;}
@@ -524,7 +521,6 @@ function getEdges(board){
     return arr;
 }
 function getNumbers(board){
-
      var arr = [];
      for (i=0;i<board.length;i++) {
         for (j=0; j <board[0].length;j++) {
@@ -532,8 +528,19 @@ function getNumbers(board){
             if(board[i][j].shown && board[i][j].neighbors > 0){
                 number = true;
             }
+			bcount = 0;
+			
+			if(i>0 && j > 0 && board[i-1][j-1].knownBomb){bcount = bcount + 1;}
+			if(i > 0 && board[i-1][j].knownBomb){bcount = bcount + 1;}
+			if(i > 0 && j < width -1  && board[i-1][j+1].knownBomb){bcount = bcount + 1;}
+			if(j > 0 && board[i][j-1].knownBomb){bcount = bcount + 1;}
+			if(j < width -1 && board[i][j+1].knownBomb){bcount = bcount + 1;}
+			if(i < height -1  && j > 0 &&  board[i+1][j-1].knownBomb){bcount = bcount + 1;}
+			if(i < height -1  && board[i+1][j].knownBomb){bcount = bcount + 1;}
+			if(i < height -1  && j < width -1  && board[i+1][j+1].knownBomb){bcount = bcount + 1;}
+            
             if(number){
-                arr.push({x : i, y : j, number: board[i][j].neighbors});
+                arr.push({x : i, y : j, number: board[i][j].neighbors - bcount});
             }
         }
     }
@@ -558,10 +565,9 @@ function getUnknownCount(arr){
     count = 0;
     for (i=0;i<arr.length;i++) {
         for (j=0; j <arr[0].length;j++) {
-            if(!arr[i][j].shown){
+            if(!arr[i][j].shown && !arr[i][j].knownBomb){
                 count = count + 1;
             }
-
         }
     }
     return count;
@@ -571,18 +577,18 @@ function updateScore(){
     $("#losses").text(losses);
     $("#win-rate").text((wins/(wins+losses)).toFixed(2));
 }
-
-
-
 function loop(){
     if(autoplay){
         var position = getRecommended();
-        select(position.x, position.y);
+		for(var selectInd = 0; selectInd < position.length; selectInd++){
+			console.log("selecting ind: "+ selectInd)
+			select(position[selectInd].x, position[selectInd].y);
+		}
+        
     }
      
-    setTimeout(function(){loop()}, 100);
+    setTimeout(function(){loop()}, 0);
 }
 loop();
 </script>
 </html>
-
