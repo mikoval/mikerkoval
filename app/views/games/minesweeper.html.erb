@@ -581,7 +581,6 @@ function loop(){
     if(autoplay){
         var position = getRecommended();
 		for(var selectInd = 0; selectInd < position.length; selectInd++){
-			console.log("selecting ind: "+ selectInd)
 			select(position[selectInd].x, position[selectInd].y);
 		}
         
