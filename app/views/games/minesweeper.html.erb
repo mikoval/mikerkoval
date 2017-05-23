@@ -44,6 +44,7 @@ var grid;
 var CurrentGame = false;
 createWorld();
 function createWorld(){
+	//console.log("new world")
 	CurrentGame = true;
     grid = new Array();
     context.fillStyle = "#FFFFFF";
@@ -67,7 +68,7 @@ function click(e){
 }
 function select(x, y){
 	if(!CurrentGame){return;}
-	console.log(CurrentGame)
+
     if(grid[x][y].shown){return;}
     grid[x][y].shown = true;
     var cellx = x;
@@ -101,9 +102,12 @@ function select(x, y){
         }
     }
     else{
-        losses = losses + 1
+		if(CurrentGame){losses = losses + 1}
+        
         if(autoplay){
-            createWorld();
+			CurrentGame = false;
+			console.log("loss")
+            setTimeout(function(){createWorld();}, 100)
         }
         else{
             solve();
@@ -114,9 +118,14 @@ function select(x, y){
         updateScore();
     }
     if(getUnknownCount(grid) + getKnown(grid) == bombs){
-        wins = wins + 1
+		if(CurrentGame){wins = wins + 1}
+        
         if(autoplay){
-            createWorld();
+			CurrentGame = false;
+
+			
+			setTimeout(function(){createWorld();}, 300)
+            
         }
         else{
 			if(CurrentGame){
@@ -150,8 +159,8 @@ function calculateNeighbors(){
 function addBombs(){
     var bombCounter =0;
     while (bombCounter < bombs){
-        var x = Math.round(Math.random() * (width -1));
-        var y = Math.round(Math.random() * (height -1));
+        var x = Math.floor(Math.random() * (width ));
+        var y = Math.floor(Math.random() * (height ));
         if(grid[x][y].bomb == undefined){
             grid[x][y].bomb = true;
             bombCounter = bombCounter + 1;
@@ -263,6 +272,7 @@ function getRecommended(){
     var combinations = getCombinations(edges, numbers);
     
     var probs = getProbabilities(combinations, unknownCount, bombs);
+
     var minProbsInd = minimumProbability(probs);
 	
 	if(autoplay){setKnown(probs, edges)};
@@ -344,7 +354,7 @@ function getProbabilities(combinations, unknownCount, bombsCount){
     
 	
     var remainingProb;
-    if(unknownCount - arr.length == 0){remainingProb = 100;}
+    if(unknownCount - arr.length == 0){remainingProb = 1;}
     else{ remainingProb = (bombsCount - avg)/(unknownCount - arr.length);}
  
     arr.push(remainingProb);
@@ -362,6 +372,13 @@ function getCombinations(edges,numbers){
     
 }
 function validCombination(arr, edges, numbers){
+	counter = 0;
+	for (var ind = 0; ind < arr.length; ind++){
+		if(arr[ind] == 1){
+			counter++;
+		}
+	}
+	if(counter > bombs){return false;}
     var edgescopy = edges.slice();
     var numberscopy = numbers.slice();
     for(i = 0; i< edges.length; i++){
@@ -413,11 +430,15 @@ function validCombination(arr, edges, numbers){
         numberscopy[numb].neigh = count;
         numberscopy[numb].free = free;
     }
+
+	if(count > bombs){ return false;}
     for (i = 0; i < numberscopy.length; i++){
         if(numberscopy[i].neigh >  numberscopy[i].number || numberscopy[i].neigh + numberscopy[i].free < numberscopy[i].number ){
+		
             return false;
         }
     }
+	
     return true;
     
 }
@@ -590,9 +611,10 @@ function loop(){
     if(autoplay){
         var position = getRecommended();
 		for(var selectInd = 0; selectInd < position.length; selectInd++){
-		console.log(CurrentGame);
+	
 			if(CurrentGame){
 			
+				
 				select(position[selectInd].x, position[selectInd].y);
 			}
 			
@@ -600,7 +622,7 @@ function loop(){
         
     }
      
-    setTimeout(function(){loop()}, 0);
+    setTimeout(function(){loop()}, 100);
 }
 loop();
 </script>
