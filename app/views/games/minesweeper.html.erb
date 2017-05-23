@@ -41,8 +41,10 @@ var autoplay = false;
 var wins = 0;
 var losses = 0;
 var grid;
+var CurrentGame = false;
 createWorld();
 function createWorld(){
+	CurrentGame = true;
     grid = new Array();
     context.fillStyle = "#FFFFFF";
     context.fillRect(0, 0, 600, 600);
@@ -64,6 +66,8 @@ function click(e){
     select(x,y);
 }
 function select(x, y){
+	if(!CurrentGame){return;}
+	console.log(CurrentGame)
     if(grid[x][y].shown){return;}
     grid[x][y].shown = true;
     var cellx = x;
@@ -103,7 +107,8 @@ function select(x, y){
         }
         else{
             solve();
-            setTimeout(function(){alert("Game Over");})
+			CurrentGame = false;
+            setTimeout(function(){alert("Game Over");}, 0)
             
         }
         updateScore();
@@ -114,8 +119,11 @@ function select(x, y){
             createWorld();
         }
         else{
-            solve();
-            setTimeout(function(){alert("You Win");})
+			if(CurrentGame){
+				CurrentGame = false;
+				setTimeout(function(){alert("You Win!");}, 0)
+			}
+            
         }
         updateScore();
     }
@@ -251,7 +259,6 @@ function getRecommended(){
     var inside =  getInside(board);
     var edges = getEdges(board);
 	var known = getKnown(board);
-
     var numbers = getNumbers(board);
     var combinations = getCombinations(edges, numbers);
     
@@ -263,7 +270,10 @@ function getRecommended(){
     else{
 		var arr = [];
 		for (var i = 0 ; i < minProbsInd.length; i++){
-			arr.push({x: edges[minProbsInd[i]].x, y:edges[minProbsInd[i]].y })
+			if(edges.length > minProbsInd[i]){
+				arr.push({x: edges[minProbsInd[i]].x, y:edges[minProbsInd[i]].y })
+			}
+			
 		}
 	return arr;
 	}
@@ -291,7 +301,6 @@ function setKnown(probs, edges){
 		}
 	}
 }
-
 function minimumProbability(probs){
 	arr = []
     prob = 2;
@@ -581,7 +590,12 @@ function loop(){
     if(autoplay){
         var position = getRecommended();
 		for(var selectInd = 0; selectInd < position.length; selectInd++){
-			select(position[selectInd].x, position[selectInd].y);
+		console.log(CurrentGame);
+			if(CurrentGame){
+			
+				select(position[selectInd].x, position[selectInd].y);
+			}
+			
 		}
         
     }
