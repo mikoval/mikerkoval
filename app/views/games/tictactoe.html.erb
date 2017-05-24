@@ -1,0 +1,303 @@
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+<style>
+body{
+    margin:20px;
+}
+</style>
+<body>
+<canvas id="Canvas" width= "600px" height = "600px">
+Your browser does not support the canvas element.
+</canvas>
+<br>
+
+<button type = "button" id = "restart">Restart</button>
+
+
+</div>
+<img border="0" id = "bombimg" alt="bomb" src="https://lh3.ggpht.com/YdRAkpeukPMqgxWjvYFoq3xftAP6ztWlNWBsci-S-XTM-0NFuqUpPZRafLM0oCbu63U=w300" style = " display:none">
+
+</body>
+
+<script>
+var canvas = document.getElementById("Canvas");
+var context = canvas.getContext("2d");
+var width = 3;
+var height = 3;
+var vSize = 600/height;
+var hSize = 600/width;
+var grid;
+var turn = "p1";
+var CurrentGame = false;
+CreateWorld()
+
+function CreateWorld(){
+    turn = "p1";
+    CurrentGame = true;
+    grid = createGrid(width, height);
+    display(grid);
+    
+}
+function createGrid(width, height){
+    var arr = []
+    for(var i = 0; i < width; i++)
+    {   
+        arr.push([])
+        for(var j = 0; j < height; j++){
+            arr[i].push("_");
+        }
+    }
+    return arr;
+}
+function display(grid){
+    linesV = width-1;
+    linesH = height-1
+    context.fillStyle = "#555555";
+    context.fillRect(0,0, 600, 600 )
+    context.fillStyle = "#000000";
+           
+    for(var i = 0; i < linesV; i++){
+        context.fillRect((i+1) * hSize - hSize * .05,0, hSize * .1, 600 )
+    }
+    for(var i = 0; i < linesH; i++){
+        context.fillRect(0,(i+1) * vSize - vSize * .05, 600, vSize * .1 )
+    }
+    
+    context.fillStyle = "#FF0000";       
+    context.font = hSize + "px Arial";
+    for(var x  = 0; x < grid.length; x++){
+        for(var y = 0; y < grid[0].length; y++){
+            
+            if(grid[x][y] == "X"){context.fillText(grid[x][y], x * hSize + hSize/6,(y+1)  * vSize - vSize/8) ;}
+            if(grid[x][y] == "O"){context.fillText(grid[x][y], x * hSize + hSize/10,(y+1)  * vSize - vSize/8) ;}
+        }
+    }
+}
+function getMoves(grid){
+    var moves = []
+    for(var x  = 0; x < grid.length; x++){
+        for(var y = 0; y < grid[0].length; y++){
+            if(grid[x][y] == "_"){ moves.push({x: x, y: y})}
+        }
+    }
+    return moves;
+}
+function makeMove(inputgrid, x,y, t){
+    if(t == "p1"){ inputgrid[x][y] = "O";}
+    else if(t == "p2"){ inputgrid[x][y] = "X";}
+    return inputgrid;
+}
+function CheckState(grid){
+    // check wins
+    for(var x = 0; x < grid.length; x++){
+        match = true;
+        for(y = 0; y < grid[0].length; y++){
+            if(grid[x][y] != "O"){ match = false;}
+        }
+        if(match == true){return 10}
+    }
+    for(var x = 0; x < grid.length; x++){
+        match = true;
+        for(y = 0; y < grid[0].length; y++){
+            if(grid[y][x] != "O"){ match = false;}
+        }
+        if(match == true){return 10}
+    }
+    
+    
+    match = true;
+    for(var x = 0; x < grid.length; x++){
+
+        if(grid[x][x] != "O"){ match = false;}
+    }
+    if(match == true){return 10}
+    
+    
+    match = true;
+    for(var x = 0; x < grid.length; x++){
+        if(grid[x][grid.length -1 - x] != "O"){ match = false;}
+    }
+    if(match == true){return 10}
+    
+    // check losses
+    for(var x = 0; x < grid.length; x++){
+        match = true;
+        for(y = 0; y < grid[0].length; y++){
+            if(grid[x][y] != "X"){ match = false;}
+        }
+        if(match == true){return -10}
+    }
+    for(var x = 0; x < grid.length; x++){
+        match = true;
+        for(y = 0; y < grid[0].length; y++){
+            if(grid[y][x] != "X"){ match = false;}
+        }
+        if(match == true){return -10}
+    }
+    
+    
+    match = true;
+    for(var x = 0; x < grid.length; x++){
+        if(grid[x][x] != "X"){ match = false;}
+    }
+    if(match == true){return -10}
+    
+    
+    match = true;
+    for(var x = 0; x < grid.length; x++){
+        if(grid[x][grid.length -1 - x] != "X"){ match = false;}
+    }
+    if(match == true){return -10}
+    
+    return 0;
+}   
+    
+function calculateMove(){
+    var moves = getMoves(grid);
+
+    minimax(grid, 0, turn);
+    makeMove(grid, choice.x, choice.y, turn);
+    turn = "p1";
+    display(grid);
+    
+    if(complete(grid)){
+        CurrentGame = false;
+        if(CheckState(grid) > 0 ){
+            alert("You Win!");
+        }
+        else if(CheckState(grid) <0 ){
+            alert("You Lose!")
+        }
+        else{
+            alert("Tie");
+        }
+
+    }
+}
+
+function complete(grid){
+  
+    if(CheckState(grid) != 0){return true;}
+    if(CheckState(grid) == 0 && getMoves(grid).length == 0){return true;}
+    return false; 
+}
+
+window.addEventListener('click', click, false);
+function click(e){
+    if(turn == "p2" || !CurrentGame){return;}
+    var pos = getMousePos(canvas, e);
+    var x = pos.x;
+    var y = pos.y;
+    if(x < 0 || x > 600){return;}
+    if(y < 0 || y > 600){return;}
+    x = Math.floor(x / hSize);
+    y = Math.floor(y / vSize);
+    if(grid[x][y] != "_"){return;}
+    makeMove(grid, x,y);
+    if(turn == "p1"){ grid[x][y] = "O"; turn = "p2"}
+
+    display(grid);
+    if(complete(grid)){
+        CurrentGame = false;
+        if(CheckState > 0 ){
+            alert("You Win!");
+        }
+        else if(CheckState <0 ){
+            alert("You Lose!")
+        }
+        else{
+            alert("Tie");
+        }
+
+    }
+
+    if(CurrentGame){calculateMove();}
+    
+}
+function getMousePos(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+      x: evt.clientX - rect.left,
+      y: evt.clientY - rect.top
+    };
+}
+function score(grid){
+    return CheckState(grid);
+}
+function minimax(inputgrid, depth, turn){
+
+    if(complete(inputgrid)){
+        return score(inputgrid)
+    }
+    var depth = depth + 1;
+    var scores = []
+    var moves = []
+
+    //Populate the scores array, recursing as needed
+    var possiblemoves = getMoves(inputgrid);
+
+    for (var i = 0; i < possiblemoves.length; i++)
+    {   
+     
+        var next_grid = []
+        for (var j = 0; j < inputgrid.length; j++)
+        {
+            next_grid.push(inputgrid[j].slice());
+        }
+        
+        next_grid = makeMove(next_grid, possiblemoves[i].x, possiblemoves[i].y, turn);
+        
+        var nextTurn;
+        if(turn == "p1"){nextTurn = "p2";}
+        else{nextTurn = "p1";}
+        scores.push(minimax(next_grid, depth, nextTurn));
+        
+        moves.push(possiblemoves[i]);
+
+    }
+
+
+    if (turn == "p1"){
+
+
+        var ind = -1;
+        var max = -1000;
+        for(var i = 0; i < scores.length; i++){
+            if(scores[i] > max){
+                max = scores[i];
+                ind = i;
+            }
+        }
+
+        choice = moves[ind]
+        return scores[ind]
+    }
+    else
+    {
+
+        var ind = -1;
+        var max = 1000;
+        for(var i = 0; i < scores.length; i++){
+            if(scores[i] < max){
+                max = scores[i];
+                ind = i;
+            }
+        }
+        if(depth ==1){
+            //console.log(moves);
+            //console.log(scores);
+            //console.log(ind);
+        }
+        choice = moves[ind]
+        return scores[ind]
+    }
+
+
+    
+}
+$("#restart").on("click", function(){
+    CreateWorld();
+    console.log(grid);
+})
+</script>
+</html>
