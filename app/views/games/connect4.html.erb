@@ -162,9 +162,7 @@ function click(e){
     else{return;}
     display(grid);
     if(complete(grid)){
-        console.log(grid)
         var score = gameValue(grid);
-        console.log(score);
         if(score > 0){setTimeout(function(){alert("You Win")} ,0)}
         else if(score < 0){setTimeout(function(){alert("You Lose")}, 0)}
         else{setTimeout(function(){alert("Tie")}, 0)}
@@ -233,8 +231,7 @@ function calculateTurn(){
     display(grid);
     if(complete(grid)){
         var score = gameValue(grid);
-        console.log(grid)
-        console.log(score)
+        
         if(score > 0){setTimeout(function(){alert("You Win")} ,0)}
         else if(score < 0){setTimeout(function(){alert("You Lose")}, 0)}
         else{setTimeout(function(){alert("Tie")}, 0)}
@@ -245,7 +242,7 @@ function calculateTurn(){
 function minimax(inputgrid, depth, turn){
     if(depth > maxDepth){return gameValue(inputgrid);}
     if(complete(inputgrid)){
-        return gameValue(inputgrid)
+        return gameValue(inputgrid) - depth;
     }
     var depth = depth + 1;
     var scores = []
@@ -271,7 +268,10 @@ function minimax(inputgrid, depth, turn){
         
         moves.push(possiblemoves[i]);
     }
-
+    if(depth == 1){
+        console.log(scores);
+        console.log(moves);
+    }
     if (turn == 0){
         var ind = -1;
         var max = -10000;
