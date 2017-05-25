@@ -375,7 +375,7 @@ function gameValue(grid){
         var count = 0;
         var row; 
         var col;
-        for( x = colStart, y = grid[0].length-1; x < grid.length && y >0; x++, y-- ){
+        for( x = colStart, y = grid[0].length-1; x < grid.length && y >=0; x++, y-- ){
             if(grid[x][y] == "R"){
                 count++;
                 if(count==3){ score+=10;}
@@ -387,11 +387,11 @@ function gameValue(grid){
         }
     }
     //bottom-left to top-right  :  top-left corner
-    for( var rowStart = grid[0].length - 2; rowStart > 0; rowStart--){
+    for( var rowStart = grid[0].length - 2; rowStart >= 0; rowStart--){
         var count = 0;
         var row; 
         var col;
-        for( x = 0, y = rowStart; x < grid.length && y >0; x++, y-- ){
+        for( x = 0, y = rowStart; x < grid.length && y >=0; x++, y-- ){
       
             if(grid[x][y] == "R"){
                 count++;
@@ -478,7 +478,7 @@ function gameValue(grid){
         var count = 0;
         var row; 
         var col;
-        for( x = colStart, y = grid[0].length-1; x < grid.length && y >0; x++, y-- ){
+        for( x = colStart, y = grid[0].length-1; x < grid.length && y >=0; x++, y-- ){
             if(grid[x][y] == "B"){
                 count++;
                 if(count==3){ score-=10;}
@@ -490,11 +490,11 @@ function gameValue(grid){
         }
     }
     //bottom-left to top-right  :  top-left corner
-    for( var rowStart = grid[0].length - 2; rowStart > 0; rowStart--){
+    for( var rowStart = grid[0].length - 2; rowStart >= 0; rowStart--){
         var count = 0;
         var row; 
         var col;
-        for( x = 0, y = rowStart; x < grid.length && y >0; x++, y-- ){
+        for( x = 0, y = rowStart; x < grid.length && y >=0; x++, y-- ){
             if(grid[x][y] == "B"){
                 count++;
                 if(count==3){ score-=10;}
@@ -595,7 +595,7 @@ function complete(grid){
         var count = 0;
         var row; 
         var col;
-        for( x = colStart, y = grid[0].length-1; x < grid.length && y >0; x++, y-- ){
+        for( x = colStart, y = grid[0].length-1; x < grid.length && y >=0; x++, y-- ){
         
             if(grid[x][y] == "R"){
                 count++;
@@ -607,12 +607,12 @@ function complete(grid){
         }
     }
     //bottom-left to top-right  :  top-left corner
-    for( var rowStart = grid[0].length - 2; rowStart > 0; rowStart--){
+    for( var rowStart = grid[0].length - 2; rowStart >= 0; rowStart--){
         var count = 0;
         var row; 
         var col;
-        for( x = 0, y = rowStart; x < grid.length && y >0; x++, y-- ){
-            
+        for( x = 0, y = rowStart; x < grid.length && y >= 0; x++, y-- ){
+            console.log(x + " , " +  y );
             if(grid[x][y] == "R"){
                 count++;
                 if(count >= 4) return true;
@@ -693,7 +693,7 @@ function complete(grid){
         var count = 0;
         var row; 
         var col;
-        for( x = colStart, y = grid[0].length-1; x < grid.length && y >0; x++, y-- ){
+        for( x = colStart, y = grid[0].length-1; x < grid.length && y >=0; x++, y-- ){
             
             if(grid[x][y] == "B"){
                 count++;
@@ -705,12 +705,12 @@ function complete(grid){
         }
     }
     //bottom-left to top-right  :  top-left corner
-    for( var rowStart = grid[0].length - 2; rowStart > 0; rowStart--){
+    for( var rowStart = grid[0].length - 2; rowStart >= 0; rowStart--){
         var count = 0;
         var row; 
         var col;
-        for( x = 0, y = rowStart; x < grid.length && y >0; x++, y-- ){
-        
+        for( x = 0, y = rowStart; x < grid.length && y >=0; x++, y-- ){
+            
             if(grid[x][y] == "B"){
                 count++;
                 if(count >= 4) return true;
