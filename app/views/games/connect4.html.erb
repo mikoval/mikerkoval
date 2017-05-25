@@ -242,7 +242,7 @@ function calculateTurn(){
 function minimax(inputgrid, depth, turn){
     if(depth > maxDepth){return gameValue(inputgrid);}
     if(complete(inputgrid)){
-        return gameValue(inputgrid) - depth;
+        return gameValue(inputgrid) - (depth * 100);
     }
     var depth = depth + 1;
     var scores = []
@@ -317,7 +317,7 @@ function gameValue(grid){
                 score+=50;
             }
             if (count>=4)
-                return 1000;
+                return 10000;
         }
     }
     //horizontal check for win
@@ -332,7 +332,7 @@ function gameValue(grid){
                 count=0;
             if(count==3 && (grid[j ][i + 1]  || grid[j][i-3])){ score+=50;}
             if (count>=4)
-                return 1000;
+                return 10000;
         }
     }
     
@@ -345,7 +345,7 @@ function gameValue(grid){
             if(grid[col][row] == "R"){
                 count++;
                 if(count==3){ score+=10;}
-                if(count >= 4) return 1000;
+                if(count >= 4) return 10000;
             }
             else {
                 count = 0;
@@ -363,7 +363,7 @@ function gameValue(grid){
             if(grid[col][row] == "R"){
                 count++;
                 if(count==3){ score+=10;}
-                if(count >= 4) return 1000;
+                if(count >= 4) return 10000;
             }
             else {
                 count = 0;
@@ -379,7 +379,7 @@ function gameValue(grid){
             if(grid[x][y] == "R"){
                 count++;
                 if(count==3){ score+=10;}
-                if(count >= 4) return 1000;
+                if(count >= 4) return 10000;
             }
             else {
                 count = 0;
@@ -396,7 +396,7 @@ function gameValue(grid){
             if(grid[x][y] == "R"){
                 count++;
                 if(count==3){ score+=10;}
-                if(count >= 4) return 1000;
+                if(count >= 4) return 10000;
             }
             else {
                 count = 0;
@@ -418,7 +418,7 @@ function gameValue(grid){
                 count=0;
             if(count==3 && (grid[i ][j + 1]  || grid[i][j-3])){ score-=50;}
             if (count>=4)
-                return -1000;
+                return -10000;
         }
     }
     
@@ -434,7 +434,7 @@ function gameValue(grid){
                 count=0;
             if(count==3 && (grid[j ][i + 1]  || grid[j][i-3])){ score-=50;}
             if (count>=4)
-                return -1000;
+                return -10000;
         }
     }
     
@@ -447,7 +447,7 @@ function gameValue(grid){
             if(grid[col][row] == "B"){
                 count++;
                 if(count==3 ){ score-=10;}
-                if(count >= 4) return -1000;
+                if(count >= 4) return -10000;
             }
             else {
                 count = 0;
@@ -466,7 +466,7 @@ function gameValue(grid){
             if(grid[col][row] == "B"){
                 count++;
                 if(count==3){ score-=10;}
-                if(count >= 4) return -1000;
+                if(count >= 4) return -10000;
             }
             else {
                 count = 0;
@@ -482,7 +482,7 @@ function gameValue(grid){
             if(grid[x][y] == "B"){
                 count++;
                 if(count==3){ score-=10;}
-                if(count >= 4) return -1000;
+                if(count >= 4) return -10000;
             }
             else {
                 count = 0;
@@ -498,7 +498,7 @@ function gameValue(grid){
             if(grid[x][y] == "B"){
                 count++;
                 if(count==3){ score-=10;}
-                if(count >= 4) return -1000;
+                if(count >= 4) return -10000;
             }
             else {
                 count = 0;
