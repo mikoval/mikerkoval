@@ -5,4 +5,7 @@ class GamesController < ApplicationController
   def tictactoe
    render(:layout => "layouts/webgl")
   end
+  def connect4
+   render(:layout => "layouts/webgl")
+  end
 end

@@ -1,0 +1,732 @@
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+<style>
+body{
+    margin:20px;
+}
+#grey-cover{
+    width:700px; height:700px; background-color: gray; opacity:0.8; position:absolute; top:20px; left:20px;
+}
+#select-menu{
+    width:400px; height:200px; background-color:white; position:absolute; top:300px; left:160px; border-radius:10px; display:block; opacity:1.0; text-align:center
+}
+#first{
+    background:    #6aa84f;
+    background:    -webkit-linear-gradient(#6aa84f, #274e13);
+    background:    linear-gradient(#6aa84f, #274e13);
+    border-radius: 20px;
+    width:         150px;
+    height:        50px;
+    color:         #ffffff;
+    display:       inline-block;
+    font:          normal 700 27px/1 "Calibri", sans-serif;
+    text-align:    center;
+    text-shadow:   1px 1px #000000;
+    margin-top:50px;
+}
+#second{
+    background:    #6aa84f;
+    background:    -webkit-linear-gradient(#6aa84f, #274e13);
+    background:    linear-gradient(#6aa84f, #274e13);
+    border-radius: 20px;
+    width:         150px;
+    height:        50px;
+    color:         #ffffff;
+    display:       inline-block;
+    font:          normal 700 27px/1 "Calibri", sans-serif;
+    text-align:    center;
+    text-shadow:   1px 1px #000000;
+    margin-top:50px;
+}
+</style>
+<body>
+<canvas id="Canvas" width= "700px" height = "700px">
+Your browser does not support the canvas element.
+</canvas>
+<br>
+<br>
+Difficulty: <input type="range" id="difficulty-slider" style = "width: 100px; display: inline-block" value="1" min = "1" max = "6"> <p style = "display:inline-block" id = "difficulty-text">1</p>
+<br>
+<button type = "button" id = "restart">Restart</button>
+<div id = "grey-cover" class = "menu-item">
+    
+</div>
+<div id = "select-menu" class = "menu-item">
+    <h3>Select if you would like to play first or second</h3>
+    <button type = "button" id = "first"> First</button>
+    <button type = "button" id = "second"> Second</button>
+</div>
+</body>
+<script>
+//canvas and context are used to manipulate the screen
+var canvas = document.getElementById("Canvas");
+var context = canvas.getContext("2d");
+//width and height are dimensions of the grid (game)
+var width = 7;
+var height = 6;
+//offset for the area above the game for buttons
+var vOffset = 100;
+// the dimensions for each piece of the grid. should be a square but calculating just in case. 
+var vSize = 600/height;
+var hSize = 700/width;
+// grid that stores the game state. might want to switch to an object if we want to store more information
+var grid;
+// the current player. using p1 and p2 because its more readable than true/false. 
+var turn;
+// if there is a current game going on. useful for handling actions if the game is over. 
+var CurrentGame = false;
+var maxDepth = 1;
+CreateWorld()
+//sets the player, sets the current game state, initializes the grid and then displays it. 
+function CreateWorld(){
+    CurrentGame = true;
+    grid = createGrid(width, height);
+    display(grid);
+    
+}
+// just creates a grid with the input dimensions and puts a "_" for each starting position showing that it is available. 
+function createGrid(width, height){
+    var arr = []
+    for(var i = 0; i < width; i++)
+    {   
+        arr.push([])
+        for(var j = 0; j < height; j++){
+            arr[i].push("_")
+        }
+    }
+    return arr;
+}
+// this function has to be called every time the game state is updated. 
+function display(grid){
+    //draw a rectangle at the start
+    context.fillStyle = "#AAAAAA";
+    context.fillRect(0,vOffset, 700, 600 )
+    context.font = hSize + "px Arial";
+    for(var x  = 0; x < grid.length; x++){
+        //for each column draw a circle for the drop button
+        context.fillStyle = "green";     
+        context.beginPath();
+        context.arc(x*hSize + hSize/2, vSize/2, hSize/3, 0, 2 * Math.PI, false);
+        context.fill();
+        context.fillStyle = 'green';
+        context.lineWidth = 5;
+        context.strokeStyle = '#003300';
+        context.stroke();
+        for(var y = 0; y < grid[0].length; y++){
+            //for each x,y create the correct circle.(black, red, white)
+            context.beginPath();
+            context.arc(x*hSize + hSize/2,  y*vSize + vSize/2 + vOffset, hSize/3, 0, 2 * Math.PI, false);
+            if(grid[x][y] == "R"){context.fillStyle = 'red';}
+            else if(grid[x][y] == "B"){context.fillStyle = 'black';}
+            else{context.fillStyle = '#FFFFFF';}
+            
+            context.fill();
+            
+        }
+    }
+}
+$("#difficulty-slider").on("change", function(){
+    var val = $(this).val() 
+
+    $("#difficulty-text").text(val);
+    maxDepth = val;
+
+})
+$("#restart").on("click", function(){
+    $(".menu-item").show();
+});
+$("#first").on("click", function(){
+    $(".menu-item").hide();
+    turn = 0;
+    CreateWorld();
+})
+$("#second").on("click", function(){
+    $(".menu-item").hide();
+    turn = 1;
+    CreateWorld();
+    calculateTurn();
+})
+// all of the click commands
+window.addEventListener('click', click, false);
+function click(e){
+    if(turn == "p2" || !CurrentGame){return;}
+    var pos = getMousePos(canvas, e);
+    var x = pos.x;
+    var y = pos.y;
+    if(x < 0 || x > 700){return;}
+    if(y < 0 || y > 100){return;}
+    var move = getMove(x,y);
+    if(move == -1){return;}
+    //make move and change turn if valid move.
+    if(makeMove(grid, move, turn)){turn = (turn + 1 )%2;}
+    else{return;}
+    display(grid);
+    if(complete(grid)){
+        console.log(grid)
+        var score = gameValue(grid);
+        console.log(score);
+        if(score > 0){setTimeout(function(){alert("You Win")} ,0)}
+        else if(score < 0){setTimeout(function(){alert("You Lose")}, 0)}
+        else{setTimeout(function(){alert("Tie")}, 0)}
+        CurrentGame = false;
+    
+    }   
+    if(CurrentGame){setTimeout(function(){calculateTurn();},50);}
+    
+   
+    
+}
+function getMousePos(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+      x: evt.clientX - rect.left,
+      y: evt.clientY - rect.top
+    };
+}
+function getMove(x,y){
+    for(var i = 0; i < width; i++)
+    {
+        circleX = i * hSize + hSize/2; 
+        circleY = vSize/2;
+        diffX = circleX - x;
+        diffY = circleY - y
+        if(Math.sqrt(diffX * diffX + diffY * diffY )  < hSize /3)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+function makeMove(game, move, currentTurn){
+    var color = getColor(currentTurn)
+    for(var i = game[move].length-1; i >= 0; i-- ){
+        if(game[move][i] == "_")
+        {
+            
+            game[move][i] = color;
+            return true;
+        }
+        
+    } 
+    return false;
+}
+//get the label to put in the grid for each player
+function getColor(turn){
+    if(turn == 0){return "R";}
+    else if (turn == 1){return "B"}
+    else{return "_"}
+}
+function getMoves(game){
+    var moves = [];
+    for( var i = 0; i < width; i++){
+        if(game[i][0] == "_"){
+            moves.push(i);
+        }
+    }
+    return moves;
+}
+function calculateTurn(){
+
+    minimax(grid, 0, turn);
+    makeMove(grid, choice, turn);
+    turn = (turn + 1) %2
+    display(grid);
+    if(complete(grid)){
+        var score = gameValue(grid);
+        console.log(grid)
+        console.log(score)
+        if(score > 0){setTimeout(function(){alert("You Win")} ,0)}
+        else if(score < 0){setTimeout(function(){alert("You Lose")}, 0)}
+        else{setTimeout(function(){alert("Tie")}, 0)}
+        CurrentGame = false;
+    
+    }   
+}
+function minimax(inputgrid, depth, turn){
+    if(depth > maxDepth){return gameValue(inputgrid);}
+    if(complete(inputgrid)){
+        return gameValue(inputgrid)
+    }
+    var depth = depth + 1;
+    var scores = []
+    var moves = []
+    //Populate the scores array, recursing as needed
+    var possiblemoves = getMoves(inputgrid);
+  
+    for (var i = 0; i < possiblemoves.length; i++)
+    {   
+     
+        var next_grid = []
+        for (var j = 0; j < inputgrid.length; j++)
+        {
+            next_grid.push(inputgrid[j].slice());
+        }
+        
+        
+        makeMove(next_grid, possiblemoves[i], turn);
+        
+        var nextTurn = (turn + 1)%2;
+        
+        scores.push(minimax(next_grid, depth, nextTurn));
+        
+        moves.push(possiblemoves[i]);
+    }
+
+    if (turn == 0){
+        var ind = -1;
+        var max = -10000;
+        for(var i = 0; i < scores.length; i++){
+            if(scores[i] > max){
+                max = scores[i];
+                ind = i;
+            }
+        }
+        choice = moves[ind]
+        return scores[ind]
+    }
+    else
+    {
+        var ind = -1;
+        var max = 10000;
+        for(var i = 0; i < scores.length; i++){
+            if(scores[i] < max){
+                max = scores[i];
+                ind = i;
+            }
+        }
+   
+        choice = moves[ind]
+        return scores[ind]
+    }
+    
+}
+function gameValue(grid){
+    //check player 1
+    //vertical check for win
+    score = 0;
+    for (var i=0;i<grid.length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid[0].length;j++)
+        {   
+            if (grid[i][j]=="R")
+                count++;
+            else
+                count=0;
+            if(count==3 && (grid[i ][j + 1]  || grid[i][j-3])== "_"){
+                score+=50;
+            }
+            if (count>=4)
+                return 1000;
+        }
+    }
+    //horizontal check for win
+    for (var i=0;i<grid[0].length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid.length;j++)
+        {   
+            if (grid[j][i]=="R")
+                count++;
+            else
+                count=0;
+            if(count==3 && (grid[j ][i + 1]  || grid[j][i-3])){ score+=50;}
+            if (count>=4)
+                return 1000;
+        }
+    }
+    
+    // top-left to bottom-right : bottom left corner
+    for( var rowStart = 0; rowStart < grid[0].length - 3; rowStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( row = rowStart, col = 0; row < grid[0].length && col < grid.length; row++, col++ ){
+            if(grid[col][row] == "R"){
+                count++;
+                if(count==3){ score+=10;}
+                if(count >= 4) return 1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+   
+    // top-left to bottom-right : top right corner
+    for(var colStart = 1; colStart < grid.length - 3; colStart++){
+        count = 0;
+        var row;
+        var col;
+        for( row = 0, col = colStart; row < grid[0].length && col < grid.length; row++, col++ ){
+      
+            if(grid[col][row] == "R"){
+                count++;
+                if(count==3){ score+=10;}
+                if(count >= 4) return 1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right : bottom-right corner
+    for( var colStart = 0; colStart < grid.length - 3; colStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = colStart, y = grid[0].length-1; x < grid.length && y >0; x++, y-- ){
+            if(grid[x][y] == "R"){
+                count++;
+                if(count==3){ score+=10;}
+                if(count >= 4) return 1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right  :  top-left corner
+    for( var rowStart = grid[0].length - 2; rowStart > 0; rowStart--){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = 0, y = rowStart; x < grid.length && y >0; x++, y-- ){
+      
+            if(grid[x][y] == "R"){
+                count++;
+                if(count==3){ score+=10;}
+                if(count >= 4) return 1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    ////////////////////////////////////////////////////
+     //check player 2
+    //vertical check for win
+  
+    for (var i=0;i<grid.length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid[0].length;j++)
+        {   
+            if (grid[i][j]=="B")
+                count++;
+            else
+                count=0;
+            if(count==3 && (grid[i ][j + 1]  || grid[i][j-3])){ score-=50;}
+            if (count>=4)
+                return -1000;
+        }
+    }
+    
+    //horizontal check for win
+    for (var i=0;i<grid[0].length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid.length;j++)
+        {   
+            if (grid[j][i]=="B")
+                count++;
+            else
+                count=0;
+            if(count==3 && (grid[j ][i + 1]  || grid[j][i-3])){ score-=50;}
+            if (count>=4)
+                return -1000;
+        }
+    }
+    
+    // top-left to bottom-right : bottom left corner
+    for( var rowStart = 0; rowStart < grid[0].length - 3; rowStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( row = rowStart, col = 0; row < grid[0].length && col < grid.length; row++, col++ ){
+            if(grid[col][row] == "B"){
+                count++;
+                if(count==3 ){ score-=10;}
+                if(count >= 4) return -1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+   
+    // top-left to bottom-right : top right corner
+    for(var colStart = 1; colStart < grid.length - 3; colStart++){
+     
+        count = 0;
+        var row;
+        var col;
+        for( row = 0, col = colStart; row < grid[0].length && col < grid.length; row++, col++ ){
+      
+            if(grid[col][row] == "B"){
+                count++;
+                if(count==3){ score-=10;}
+                if(count >= 4) return -1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right : bottom-right corner
+    for( var colStart = 0; colStart < grid.length - 3; colStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = colStart, y = grid[0].length-1; x < grid.length && y >0; x++, y-- ){
+            if(grid[x][y] == "B"){
+                count++;
+                if(count==3){ score-=10;}
+                if(count >= 4) return -1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right  :  top-left corner
+    for( var rowStart = grid[0].length - 2; rowStart > 0; rowStart--){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = 0, y = rowStart; x < grid.length && y >0; x++, y-- ){
+            if(grid[x][y] == "B"){
+                count++;
+                if(count==3){ score-=10;}
+                if(count >= 4) return -1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+
+    for (var i = 0; i < grid.length; i++){
+        for (var j = 0; j < grid[0].length; j++){
+            value = 4 -  Math.abs((grid.length-1)/2.0  - i);
+            value = value * 3
+            value = value +  (4 - Math.abs((grid[0].length-1)/2.0 - j));
+            value = value / 5;
+            
+            if(grid[i][j] == "R"){score += value;}
+            if(grid[i][j] == "B"){score -= value;}
+            
+        }
+    }
+    //check if no moves left
+    for(var i = 0; i < width; i++){
+        if(grid[i][0] == "_"){return score;}
+    }
+    return 0;
+}
+//check if any moves left or if a player has 4 in a row
+function complete(grid){
+    //check player 1
+    //vertical check for win
+  
+    for (var i=0;i<grid.length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid[0].length;j++)
+        {   
+            if (grid[i][j]=="R")
+                count++;
+            else
+                count=0;
+            if (count>=4)
+                return true;
+        }
+    }
+    //horizontal check for win
+    for (var i=0;i<grid[0].length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid.length;j++)
+        {   
+            if (grid[j][i]=="R")
+                count++;
+            else
+                count=0;
+            if (count>=4)
+                return true;
+        }
+    }
+    
+    // top-left to bottom-right : bottom left corner
+    for( var rowStart = 0; rowStart < grid[0].length - 3; rowStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( row = rowStart, col = 0; row < grid[0].length && col < grid.length; row++, col++ ){
+            if(grid[col][row] == "R"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+   
+    // top-left to bottom-right : top right corner
+    for(var colStart = 1; colStart < grid.length - 3; colStart++){
+  
+        count = 0;
+        var row;
+        var col;
+        for( row = 0, col = colStart; row < grid[0].length && col < grid.length; row++, col++ ){
+      
+            if(grid[col][row] == "R"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right : bottom-right corner
+    for( var colStart = 0; colStart < grid.length - 3; colStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = colStart, y = grid[0].length-1; x < grid.length && y >0; x++, y-- ){
+        
+            if(grid[x][y] == "R"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right  :  top-left corner
+    for( var rowStart = grid[0].length - 2; rowStart > 0; rowStart--){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = 0, y = rowStart; x < grid.length && y >0; x++, y-- ){
+            
+            if(grid[x][y] == "R"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    ////////////////////////////////////////////////////
+     //check player 2
+    //vertical check for win
+  
+    for (var i=0;i<grid.length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid[0].length;j++)
+        {   
+            if (grid[i][j]=="B")
+                count++;
+            else
+                count=0;
+            if (count>=4)
+                return true;
+        }
+    }
+    
+    //horizontal check for win
+    for (var i=0;i<grid[0].length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid.length;j++)
+        {   
+            if (grid[j][i]=="B")
+                count++;
+            else
+                count=0;
+            if (count>=4)
+                return true;
+        }
+    }
+    
+    // top-left to bottom-right : bottom left corner
+    for( var rowStart = 0; rowStart < grid[0].length - 3; rowStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( row = rowStart, col = 0; row < grid[0].length && col < grid.length; row++, col++ ){
+            if(grid[col][row] == "B"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+   
+    // top-left to bottom-right : top right corner
+    for(var colStart = 1; colStart < grid.length - 3; colStart++){
+    
+        count = 0;
+        var row;
+        var col;
+        for( row = 0, col = colStart; row < grid[0].length && col < grid.length; row++, col++ ){
+      
+            if(grid[col][row] == "B"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right : bottom-right corner
+    for( var colStart = 0; colStart < grid.length - 3; colStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = colStart, y = grid[0].length-1; x < grid.length && y >0; x++, y-- ){
+            
+            if(grid[x][y] == "B"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right  :  top-left corner
+    for( var rowStart = grid[0].length - 2; rowStart > 0; rowStart--){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = 0, y = rowStart; x < grid.length && y >0; x++, y-- ){
+        
+            if(grid[x][y] == "B"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+
+    //check if no moves left
+    for(var i = 0; i < width; i++){
+        if(grid[i][0] == "_"){return false;}
+    }
+    return true;
+}
+</script>
+</html>
+

@@ -18,5 +18,6 @@ Rails.application.routes.draw do
     get 'simulation/diffusion'
     get 'games/minesweeper'
     get 'games/tictactoe'
+    get 'games/connect4'
     root 'main#welcome'
 end
