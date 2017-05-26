@@ -45,7 +45,7 @@ Your browser does not support the canvas element.
 </canvas>
 <br>
 <br>
-Difficulty: <input type="range" id="difficulty-slider" style = "width: 100px; display: inline-block" value="1" min = "1" max = "5"> <p style = "display:inline-block" id = "difficulty-text">1</p>
+Difficulty: <input type="range" id="difficulty-slider" style = "width: 100px; display: inline-block" value="1" min = "1" max = "7"> <p style = "display:inline-block" id = "difficulty-text">1</p>
 <br>
 <button type = "button" id = "restart">Restart</button>
 <div id = "grey-cover" class = "menu-item">
@@ -75,7 +75,7 @@ var grid;
 var turn;
 // if there is a current game going on. useful for handling actions if the game is over. 
 var CurrentGame = false;
-var maxDepth = 2;
+var maxDepth = 1;
 CreateWorld()
 //sets the player, sets the current game state, initializes the grid and then displays it. 
 function CreateWorld(){
@@ -127,10 +127,8 @@ function display(grid){
 }
 $("#difficulty-slider").on("change", function(){
     var val = parseInt($(this).val() );
-
     $("#difficulty-text").text(val);
     maxDepth = val + 1;
-
 })
 $("#restart").on("click", function(){
     $(".menu-item").show();
@@ -224,9 +222,8 @@ function getMoves(game){
     return moves;
 }
 function calculateTurn(){
+    alphabeta(grid, 0, -1000000, 1000000, turn);
 
-    minimax(grid, 0, turn);
-    console.log(choice);
     makeMove(grid, choice, turn);
     turn = (turn + 1) %2
     display(grid);
@@ -240,10 +237,100 @@ function calculateTurn(){
     
     }   
 }
+function alphabeta(map, depth, alpha, beta, currentTurn){
+
+    if(depth > maxDepth){
+		
+		return gameValue(map);
+		}
+		
+    if(complete(map)){
+	
+        var val = gameValue(map) ;
+		if(val < 0){return val + (depth * 100);}
+		else if (val > 0){return val - (depth * 100);}
+        else{return val} 
+    }
+	var depth = depth + 1;
+	
+	var possiblemoves = getMoves(map);
+    if (currentTurn == 0){
+        var ind = -1;
+        var max = -1000000000;
+		for(var i = 0; i < possiblemoves.length; i++){
+			var next_grid = []
+			for (var j = 0; j < map.length; j++)
+			{
+				next_grid.push(map[j].slice());
+			}
+			
+			makeMove(next_grid, possiblemoves[i], currentTurn);
+			
+	
+			var nextTurn = (currentTurn + 1)%2;
+			var newScore = alphabeta(next_grid, depth, alpha, beta , nextTurn);
+            if(newScore > max){ 
+				max = newScore
+				ind = i
+			};
+		
+            if(max > alpha ){
+				alpha = max;
+			}
+            if(beta <= alpha){
+		
+				
+				i = possiblemoves.length;
+			}
+        }
+		choice = possiblemoves[ind];
+		return max;
+	}
+        
+    else {
+
+        var ind = -1;
+        var min = 10000000000;
+		for(var i = 0; i < possiblemoves.length; i++){
+			var next_grid = []
+			for (var j = 0; j < map.length; j++)
+			{
+				next_grid.push(map[j].slice());
+			}
+			
+			makeMove(next_grid, possiblemoves[i], currentTurn );
+			
+			var nextTurn = (currentTurn + 1)%2;
+			var newScore = alphabeta(next_grid, depth, alpha, beta,  nextTurn);
+            if(newScore < min){ 
+				min = newScore
+				ind = i
+			};
+			
+			if(min  < beta ){
+				beta = min;
+			}
+            if(beta <= alpha){
+			
+				break;
+			}
+			
+            
+        }
+	
+		choice = possiblemoves[ind];
+		return min;
+	}
+}
 function minimax(inputgrid, depth, turn){
-    if(depth > maxDepth){return gameValue(inputgrid);}
+    if(depth > maxDepth){
+		return gameValue(inputgrid);
+	}
     if(complete(inputgrid)){
-        return gameValue(inputgrid) - (depth * 100);
+		var val = gameValue(inputgrid) ;
+		if(val < 0){return val + (depth * 100);}
+		else if (val > 0){return val - (depth * 100);}
+        else{return val} 
     }
     var depth = depth + 1;
     var scores = []
@@ -269,10 +356,9 @@ function minimax(inputgrid, depth, turn){
         
         moves.push(possiblemoves[i]);
     }
-    
     if (turn == 0){
         var ind = -1;
-        var max = -10000;
+        var max = -1000000;
         for(var i = 0; i < scores.length; i++){
             if(scores[i] > max){
                 max = scores[i];
@@ -285,7 +371,7 @@ function minimax(inputgrid, depth, turn){
     else
     {
         var ind = -1;
-        var max = 10000;
+        var max = 1000000;
         for(var i = 0; i < scores.length; i++){
             if(scores[i] < max){
                 max = scores[i];
@@ -503,7 +589,6 @@ function gameValue(grid){
             }
         }
     }
-
     for (var i = 0; i < grid.length; i++){
         for (var j = 0; j < grid[0].length; j++){
             value = 4 -  Math.abs((grid.length-1)/2.0  - i);
@@ -718,7 +803,6 @@ function complete(grid){
             }
         }
     }
-
     //check if no moves left
     for(var i = 0; i < width; i++){
         if(grid[i][0] == "_"){return false;}
@@ -727,4 +811,3 @@ function complete(grid){
 }
 </script>
 </html>
-
