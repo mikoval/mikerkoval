@@ -30,7 +30,6 @@ var grid;
 var turn = "p1";
 var CurrentGame = false;
 CreateWorld()
-
 function CreateWorld(){
     turn = "p1";
     CurrentGame = true;
@@ -107,7 +106,6 @@ function CheckState(grid){
     
     match = true;
     for(var x = 0; x < grid.length; x++){
-
         if(grid[x][x] != "O"){ match = false;}
     }
     if(match == true){return 10}
@@ -154,8 +152,8 @@ function CheckState(grid){
     
 function calculateMove(){
     var moves = getMoves(grid);
+    alphabeta(grid, 0, -10000000, 10000000, turn);
 
-    minimax(grid, 0, turn);
     makeMove(grid, choice.x, choice.y, turn);
     turn = "p1";
     display(grid);
@@ -171,17 +169,14 @@ function calculateMove(){
         else{
             alert("Tie");
         }
-
     }
 }
-
 function complete(grid){
   
     if(CheckState(grid) != 0){return true;}
     if(CheckState(grid) == 0 && getMoves(grid).length == 0){return true;}
     return false; 
 }
-
 window.addEventListener('click', click, false);
 function click(e){
     if(turn == "p2" || !CurrentGame){return;}
@@ -195,7 +190,6 @@ function click(e){
     if(grid[x][y] != "_"){return;}
     makeMove(grid, x,y);
     if(turn == "p1"){ grid[x][y] = "O"; turn = "p2"}
-
     display(grid);
     if(complete(grid)){
         CurrentGame = false;
@@ -208,9 +202,7 @@ function click(e){
         else{
             alert("Tie");
         }
-
     }
-
     if(CurrentGame){calculateMove();}
     
 }
@@ -224,18 +216,92 @@ function getMousePos(canvas, evt) {
 function score(grid){
     return CheckState(grid);
 }
+function alphabeta(map, depth, alpha, beta, currentTurn){
+    if (depth == 10 || complete(map)){
+        return score(map);
+	}
+	depth = depth + 1;
+	
+	var possiblemoves = getMoves(map);
+    if (currentTurn == "p1"){
+        var ind = -1;
+        var max = -1000;
+		for(var i = 0; i < possiblemoves.length; i++){
+			var next_grid = []
+			for (var j = 0; j < map.length; j++)
+			{
+				next_grid.push(map[j].slice());
+			}
+			
+			next_grid = makeMove(next_grid, possiblemoves[i].x, possiblemoves[i].y, currentTurn);
+			
+			var nextTurn;
+			if(currentTurn == "p1"){nextTurn = "p2";}
+			else{nextTurn = "p1";}
+			newScore = alphabeta(next_grid, depth, alpha, beta , nextTurn);
+            if(newScore > max){ 
+				max = newScore
+				ind = i
+			};
+			if(max > alpha ){
+				alpha = max;
+			}
+            if(beta <= alpha){
+		
+				
+				break;
+			}
+			
+            
+        }
+		choice = possiblemoves[ind];
+		return max;
+	}
+        
+    else {
+        var ind = -1;
+        var min = 1000;
+		for(var i = 0; i < possiblemoves.length; i++){
+			var next_grid = []
+			for (var j = 0; j < map.length; j++)
+			{
+				next_grid.push(map[j].slice());
+			}
+			
+			next_grid = makeMove(next_grid, possiblemoves[i].x, possiblemoves[i].y, currentTurn );
+			
+			var nextTurn;
+			if(currentTurn == "p1"){nextTurn = "p2";}
+			else{nextTurn = "p1";}
+			newScore = alphabeta(next_grid, depth, alpha, beta,  nextTurn);
+            if(newScore < min){ 
+				min = newScore
+				ind = i
+			};
+			if(min  < beta ){
+				beta = min;
+			}
+            if(beta <= alpha){
+			
+				break;
+			}
+			
+			
+            
+        }
+		choice = possiblemoves[ind];
+		return min;
+	}
+}
 function minimax(inputgrid, depth, turn){
-
     if(complete(inputgrid)){
         return score(inputgrid)
     }
     var depth = depth + 1;
     var scores = []
     var moves = []
-
     //Populate the scores array, recursing as needed
     var possiblemoves = getMoves(inputgrid);
-
     for (var i = 0; i < possiblemoves.length; i++)
     {   
      
@@ -253,13 +319,8 @@ function minimax(inputgrid, depth, turn){
         scores.push(minimax(next_grid, depth, nextTurn));
         
         moves.push(possiblemoves[i]);
-
     }
-
-
     if (turn == "p1"){
-
-
         var ind = -1;
         var max = -1000;
         for(var i = 0; i < scores.length; i++){
@@ -268,13 +329,11 @@ function minimax(inputgrid, depth, turn){
                 ind = i;
             }
         }
-
         choice = moves[ind]
         return scores[ind]
     }
     else
     {
-
         var ind = -1;
         var max = 1000;
         for(var i = 0; i < scores.length; i++){
@@ -283,21 +342,14 @@ function minimax(inputgrid, depth, turn){
                 ind = i;
             }
         }
-        if(depth ==1){
-            //console.log(moves);
-            //console.log(scores);
-            //console.log(ind);
-        }
+      
         choice = moves[ind]
         return scores[ind]
     }
-
-
     
 }
 $("#restart").on("click", function(){
     CreateWorld();
-    console.log(grid);
 })
 </script>
 </html>
