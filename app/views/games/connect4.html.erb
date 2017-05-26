@@ -45,7 +45,7 @@ Your browser does not support the canvas element.
 </canvas>
 <br>
 <br>
-Difficulty: <input type="range" id="difficulty-slider" style = "width: 100px; display: inline-block" value="1" min = "1" max = "6"> <p style = "display:inline-block" id = "difficulty-text">1</p>
+Difficulty: <input type="range" id="difficulty-slider" style = "width: 100px; display: inline-block" value="1" min = "1" max = "5"> <p style = "display:inline-block" id = "difficulty-text">1</p>
 <br>
 <button type = "button" id = "restart">Restart</button>
 <div id = "grey-cover" class = "menu-item">
@@ -75,7 +75,7 @@ var grid;
 var turn;
 // if there is a current game going on. useful for handling actions if the game is over. 
 var CurrentGame = false;
-var maxDepth = 1;
+var maxDepth = 2;
 CreateWorld()
 //sets the player, sets the current game state, initializes the grid and then displays it. 
 function CreateWorld(){
@@ -126,10 +126,10 @@ function display(grid){
     }
 }
 $("#difficulty-slider").on("change", function(){
-    var val = $(this).val() 
+    var val = parseInt($(this).val() );
 
     $("#difficulty-text").text(val);
-    maxDepth = val;
+    maxDepth = val + 1;
 
 })
 $("#restart").on("click", function(){
@@ -226,6 +226,7 @@ function getMoves(game){
 function calculateTurn(){
 
     minimax(grid, 0, turn);
+    console.log(choice);
     makeMove(grid, choice, turn);
     turn = (turn + 1) %2
     display(grid);
@@ -268,10 +269,7 @@ function minimax(inputgrid, depth, turn){
         
         moves.push(possiblemoves[i]);
     }
-    if(depth == 1){
-        console.log(scores);
-        console.log(moves);
-    }
+    
     if (turn == 0){
         var ind = -1;
         var max = -10000;
@@ -612,7 +610,7 @@ function complete(grid){
         var row; 
         var col;
         for( x = 0, y = rowStart; x < grid.length && y >= 0; x++, y-- ){
-            console.log(x + " , " +  y );
+           
             if(grid[x][y] == "R"){
                 count++;
                 if(count >= 4) return true;
