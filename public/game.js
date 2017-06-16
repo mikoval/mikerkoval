@@ -102,7 +102,7 @@ function balloon(x,y,radius){
         var mag = Math.sqrt(dir.x * dir.x + dir.y * dir.y);
 
         var dot = dir.x * this.vel.x + dir.y * this.vel.y;
-        if(mag > 330 && dot < 0 ){
+        if(mag > 300 && dot < 0 ){
           
             dir.x = dir.x/ mag;
             dir.y = dir.y/ mag;
@@ -151,24 +151,26 @@ function tentacle(x, y, size, direction, balloon){
             }
            
         }
-
-        for(var i = 0; i < this.segments.length; i++){
+		for(var l = 0; l < 2; l++ ){
+			for(var i = 0; i < this.segments.length; i++){
             
-           this.segments[i].follow(this.balloon.pos.x, this.balloon.pos.y + this.balloon.radius/3);
-           this.segments[i].update();
-        }
-        var last = this.segments[this.segments.length -1]
-        var dx = last.b.x - this.root.x;
-        var dy = last.b.y - this.root.y;
-  
-        for(var i = 0; i < this.segments.length; i++){
-          
-            this.segments[i].a.x -= dx;
-            this.segments[i].a.y -= dy;
-            this.segments[i].b.x -= dx;
-            this.segments[i].b.y -= dy;
+			   this.segments[i].follow(this.balloon.pos.x, this.balloon.pos.y + this.balloon.radius/2.5);
+			   this.segments[i].update();
+			}
+			var last = this.segments[this.segments.length -1]
+			var dx = last.b.x - this.root.x;
+			var dy = last.b.y - this.root.y;
+	  
+			for(var i = 0; i < this.segments.length; i++){
+			  
+				this.segments[i].a.x -= dx;
+				this.segments[i].a.y -= dy;
+				this.segments[i].b.x -= dx;
+				this.segments[i].b.y -= dy;
 
-        }
+			}
+		}
+        
 
     }
     this.draw = function(){
