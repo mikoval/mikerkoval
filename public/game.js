@@ -73,7 +73,7 @@ function balloon(x,y,radius){
     this.vel = {x:0, y:0}
 
     this.radius = radius;
-    this.tent = new tentacle(x,y,30,radians(-90), this);
+    this.tent = new tentacle(x,y,60,radians(-90), this);
 
     this.draw = function(){
         this.tent.update()
@@ -126,18 +126,36 @@ function tentacle(x, y, size, direction, balloon){
     this.balloon = balloon
     this.root = {x:x, y:y};
     this.segments = []
-    this.segments.push(new rootSegment(x,y,10,direction, 0, this.balloon) )
+    this.segments.push(new rootSegment(x,y,5,direction, 0, this.balloon) )
     for(var i = 1; i < size; i++){
         
         
-        this.segments.push(new bodySegment(this.segments[i-1],10,0 )  )
+        this.segments.push(new bodySegment(this.segments[i-1],5,0 )  )
         this.segments[i].update();
     }
     this.update = function(){
+        for(var i = this.segments.length-1; i >= 0; i--){
+            
+            if(i == this.segments.length-1) {
+            
+                this.segments[i].a.x = this.root.x 
+                this.segments[i].a.y = this.root.y + this.segments[i].length;
+                this.segments[i].angle = PI/2
+                this.segments[i].b = this.segments[i].calculateB();
+            }
+            else{
+                this.segments[i].a.x = this.segments[i+1].a.x
+                this.segments[i].a.y = this.segments[i+1].a.y+ this.segments[i].length;
+                this.segments[i].angle = PI/2
+                this.segments[i].b = this.segments[i].calculateB();
+            }
+           
+        }
+
         for(var i = 0; i < this.segments.length; i++){
             
-            this.segments[i].follow(this.balloon.pos.x, this.balloon.pos.y);
-            this.segments[i].update();
+           this.segments[i].follow(this.balloon.pos.x, this.balloon.pos.y + this.balloon.radius/3);
+           this.segments[i].update();
         }
         var last = this.segments[this.segments.length -1]
         var dx = last.b.x - this.root.x;
@@ -186,7 +204,7 @@ function rootSegment(x, y, length, angle, t, balloon) {
 
         var dir = {x: tx - this.a.x, y: -(ty - this.a.y)}
         var mag = Math.sqrt(dir.x * dir.x + dir.y * dir.y)
-        if(mag < 10){
+        if(mag < 3){
             return
         }
         dir.x = dir.x / mag;
@@ -233,7 +251,7 @@ function bodySegment(parent, length, angle, t, tail, rate){
         var ty = this.parent.b.y;
         var dir = {x: tx - this.a.x, y: -(ty - this.a.y)}
         var mag = Math.sqrt(dir.x * dir.x + dir.y * dir.y)
-        if(mag <10){
+        if(mag <3){
             return
         }
         dir.x = dir.x / mag;
