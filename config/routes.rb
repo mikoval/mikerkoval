@@ -16,6 +16,7 @@ Rails.application.routes.draw do
     get '/about', to: 'main#about'
 
     get 'simulation/diffusion'
+    get 'simulation/balloons'
     get 'games/minesweeper'
     get 'games/tictactoe'
     get 'games/connect4'
