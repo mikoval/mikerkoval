@@ -98,7 +98,7 @@ function balloon(x,y,radius){
             this.vel.x = -dirToMouse.x / distToMouse  * 5
             this.vel.y = -dirToMouse.y  / distToMouse * 5
         }
-        var dir = {x:this.root.x - this.pos.x , y:this.root.y - this.pos.y }
+        var dir = {x:this.root.x - this.pos.x , y:(this.root.y - this.radius/2.5) - this.pos.y }
         var mag = Math.sqrt(dir.x * dir.x + dir.y * dir.y);
 
         var dot = dir.x * this.vel.x + dir.y * this.vel.y;
@@ -151,7 +151,7 @@ function tentacle(x, y, size, direction, balloon){
             }
            
         }
-		for(var l = 0; l < 2; l++ ){
+		for(var l = 0; l < 3; l++ ){
 			for(var i = 0; i < this.segments.length; i++){
             
 			   this.segments[i].follow(this.balloon.pos.x, this.balloon.pos.y + this.balloon.radius/2.5);
