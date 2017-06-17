@@ -40,15 +40,19 @@ function draw(){
                     var a1 = balloon1.vel.x * dir.x + balloon1.vel.y * dir.y;
                     var a2 = balloon2.vel.x * dir.x + balloon2.vel.y * dir.y;
 
-                    var optimizedP = (2.0 * (a1 - a2)) /2.0;
+                    var m1 = balloon1.area;
+                    var m2 = balloon2.area;
+
+                    var optimizedP = (2.0 * (a1 - a2)) /(m1 + m2);
+
                     dir.x = dir.x * optimizedP;
                     dir.y = dir.y * optimizedP;
                     
-                    balloon1.vel.x = balloon1.vel.x -dir.x;
-                    balloon1.vel.y = balloon1.vel.y -dir.y;
+                    balloon1.vel.x = balloon1.vel.x -(dir.x * m2) ;
+                    balloon1.vel.y = balloon1.vel.y -(dir.y * m2);
 
-                    balloon2.vel.x = balloon2.vel.x +dir.x;
-                    balloon2.vel.y = balloon2.vel.y +dir.y;
+                    balloon2.vel.x = balloon2.vel.x +(dir.x * m1);
+                    balloon2.vel.y = balloon2.vel.y +(dir.y * m1);
 
                 }
             }
@@ -61,9 +65,8 @@ function draw(){
    
 }
 function mouseClicked() {
-   var ball = new balloon(mouseX, mouseY, 100)
+   var ball = new balloon(mouseX, mouseY, Rand.normal() * 80 + 100, Rand.normal() * 50 + 50)
    balloons.push(ball)
   
 
 }
-
