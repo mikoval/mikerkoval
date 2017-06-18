@@ -1,7 +1,9 @@
 
 
 var balloons = []
-
+var mode;
+var instructions = true;
+var holding = undefined;
 function setup() {
    
     width = $(window).width();
@@ -14,10 +16,46 @@ function setup() {
     stroke("#FFFFFF");
     strokeWeight(2);
 
+    mode = "catenary"
+
 }
 
 function draw(){
     background(51);
+    fill('#FFFFFF')
+    textSize(20);
+    strokeWeight(1)
+    if(instructions){
+        textAlign(LEFT);
+        text("Instructions", 30,50)
+        text("Press '1' for inverse kinematics", 30,50 + 30)
+        text("Press '2' for inverse kinematics with gravity", 30,50  + 60)
+        text("Press '3' for catenary curve", 30,50 + 90) 
+        text("Click and drag the balloon holders to move them ", 30,50 + 120) 
+        text("Press 'H' to toggle instructions", 30,50 + 150)
+    }
+    textAlign(CENTER);
+    if(mode == "IK1"){
+        text("Current mode: Inverse Kinematics", width/2, height - 50)
+    }
+    else if(mode == "IK2"){
+        text("Current mode: Inverse Kinematics with gravity", width/2, height - 50 )
+    }
+    else if(mode == "catenary"){
+        text("Current mode: Catenary Curve", width/2, height - 50  )
+    }
+    
+    if(holding!=undefined){
+        var balloon = balloons[holding];
+        var differenceX = mouseX - balloon.root.x 
+        var differenceY = mouseY - balloon.root.y 
+        balloon.root.x = mouseX;
+        balloon.root.y = mouseY;
+        balloon.rope.root.x = mouseX;
+        balloon.rope.root.y = mouseY;
+        balloon.vel.x += differenceX/10;
+        balloon.vel.y += differenceY/10;
+    }
   
     for(var i = 0 ; i < balloons.length;i++){
         for(var j = i+1; j < balloons.length; j++){
@@ -64,9 +102,39 @@ function draw(){
     }
    
 }
-function mouseClicked() {
-   var ball = new balloon(mouseX, mouseY, Rand.normal() * 80 + 100, Rand.normal() * 50 + 50)
-   balloons.push(ball)
+function mousePressed() {
+    var hit = false;
+    for(var i = 0; i < balloons.length; i++){
+        var p = balloons[i].root;
+        var dx = p.x - mouseX;
+        var dy = p.y - mouseY;
+        if(Math.sqrt(dx * dx + dy * dy) < 25/2 ){
+            var hit = true;
+            holding = i;
+        }
+    }
+    if(!hit){
+        var ball = new balloon(mouseX, mouseY, Math.round(Rand.normal() * 80) + 100, Math.round(Rand.normal() * 50 )+ 50)
+        balloons.push(ball)
+    }
+    
   
 
+}
+function mouseReleased(){
+    holding = undefined;
+}
+function keyPressed(e) {
+  if (e.key == "1") {
+    mode = "IK1"
+  } 
+  else if  (e.key == "2") {
+    mode = "IK2";
+  }
+  else if  (e.key == "3") {
+    mode = "catenary";
+  }
+  else if  (e.key == "h") {
+    instructions = !instructions;
+  }
 }
