@@ -57,7 +57,7 @@ function draw(){
         var rx = balloon.root.x;
         var ry = balloon.root.y;
         var bx = balloon.pos.x;
-        var by = balloon.pos.y;
+        var by = balloon.pos.y + balloon.radius/2; 
         var dx = rx - bx;
         var dy = ry - by;
         var dist = Math.sqrt(dx * dx + dy * dy)
@@ -67,7 +67,7 @@ function draw(){
         var dot = dx * balloon.vel.x + dy * balloon.vel.y;
         if(dist > balloon.length * 5.2 ){
             balloon.pos.x = rx - (dx/dist * balloon.length * 5);
-            balloon.pos.y = ry - (dy/dist * balloon.length * 5);
+            balloon.pos.y = ry - (dy/dist * balloon.length * 5) - balloon.radius/2;
             
             
             balloon.vel.x += differenceX/5 + dx/50;

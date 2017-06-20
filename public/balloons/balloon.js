@@ -34,15 +34,15 @@ function balloon(x,y,radius, length){
     }
     this.update = function(){
 
-        this.vel.y = this.vel.y - 0.2;
+        this.vel.y = this.vel.y - 0.5;
 
         var dirToMouse = {x: mouseX - this.pos.x, y: mouseY - this.pos.y}
         var distToMouse = Math.sqrt(dirToMouse.x * dirToMouse.x + dirToMouse.y * dirToMouse.y)
 
 
         if(distToMouse < this.radius /2 && distToMouse > 0){
-            this.vel.x = -dirToMouse.x / distToMouse  * 5
-            this.vel.y = -dirToMouse.y  / distToMouse * 5
+            this.vel.x = -dirToMouse.x / distToMouse  * 10
+            this.vel.y = -dirToMouse.y  / distToMouse * 10
         }
         var dir = {x:this.root.x - this.pos.x , y:this.root.y - (this.pos.y + this.radius/2.5)}
         var mag = Math.sqrt(dir.x * dir.x + dir.y * dir.y);
@@ -54,8 +54,8 @@ function balloon(x,y,radius, length){
             dir.y = dir.y/ mag;
              dot = dir.x * this.vel.x + dir.y * this.vel.y;
             var vel = Math.sqrt(this.vel.x * this.vel.x + this.vel.y * this.vel.y )
-            this.vel.x += dir.x * -dot  * 1.9 ;
-            this.vel.y += dir.y * -dot  * 1.9;
+            this.vel.x += dir.x * -dot  * 1.4 ;
+            this.vel.y += dir.y * -dot  * 1.4;
             vel = Math.sqrt(this.vel.x * this.vel.x + this.vel.y * this.vel.y )
 
 
