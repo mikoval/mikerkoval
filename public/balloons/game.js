@@ -53,8 +53,34 @@ function draw(){
         balloon.root.y = mouseY;
         balloon.rope.root.x = mouseX;
         balloon.rope.root.y = mouseY;
-        balloon.vel.x += differenceX/10;
-        balloon.vel.y += differenceY/10;
+
+        var rx = balloon.root.x;
+        var ry = balloon.root.y;
+        var bx = balloon.pos.x;
+        var by = balloon.pos.y;
+        var dx = rx - bx;
+        var dy = ry - by;
+        var dist = Math.sqrt(dx * dx + dy * dy)
+
+        
+       
+        var dot = dx * balloon.vel.x + dy * balloon.vel.y;
+        if(dist > balloon.length * 5.2 ){
+            balloon.pos.x = rx - (dx/dist * balloon.length * 5);
+            balloon.pos.y = ry - (dy/dist * balloon.length * 5);
+            
+            
+            balloon.vel.x += differenceX/5 + dx/50;
+            balloon.vel.y += differenceY/5 + dy/50;
+            
+            
+
+            console.log("pos " + balloon.pos.x)
+            console.log("vel " + balloon.vel.x)
+
+
+        }
+        
     }
   
     for(var i = 0 ; i < balloons.length;i++){
