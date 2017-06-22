@@ -119,7 +119,7 @@ function fitness(){
         agents[i].fitness = map(d, 0, width, width, 0);
         agents[i].fitness = Math.pow(agents[i].fitness, 4);
         if (agents[i].completed) {
-            agents[i].fitness *= (maxFrames - agents[i].completedTime);
+            agents[i].fitness *= Math.pow((maxFrames - agents[i].completedTime), 2);
           
         }
         
