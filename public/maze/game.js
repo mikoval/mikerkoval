@@ -11,20 +11,23 @@ var obstacles = []
 var maxSpeed
 var p1; 
 var p2;
+var vecDensity;
+var generation;
 function setup() {
     width = $(window).width();
     height = $(window).height();
-
 
     var myCanvas = createCanvas(width, height);
     myCanvas.parent('myContainer');
 
     
     count = 0;
-    maxFrames = 500;
-    population = 300;
-    mutationRate = 0.05;
+    generation = 0;
+    maxFrames = 100;
+    population = 100;
+    mutationRate = 0.01;
     maxSpeed = 5
+    vecDensity = 3;
     goal = {x:width/2, y:height/10}
 
 
@@ -39,11 +42,13 @@ function setup() {
 function draw(){
     if(count > maxFrames){
         count = 0;
+        generation++;
+        console.log(generation);
         regenerate();
     }
     background(50);
 
-    for(var i = 0; i < population; i++){
+    for(var i = 0; i < agents.length; i++){
         var a = agents[i];
         a.update()
         a.draw();
@@ -91,7 +96,7 @@ function regenerate(){
 function breed(matingPool){
     var arr = []
     
-    for(var i = 0 ; i < agents.length; i++){
+    for(var i = 0 ; i < population; i++){
         var a = new agent({x:width/2, y:height});
         var first = matingPool[Math.floor(Math.random() * matingPool.length)]
         var second = matingPool[Math.floor(Math.random() * matingPool.length)]
@@ -114,12 +119,12 @@ function fitness(){
         agents[i].fitness = map(d, 0, width, width, 0);
         agents[i].fitness = Math.pow(agents[i].fitness, 4);
         if (agents[i].completed) {
-            agents[i].fitness *= Math.pow( (maxFrames - agents[i].completedTime), 10);
+            agents[i].fitness *= (maxFrames - agents[i].completedTime);
           
         }
         
         if (agents[i].crashed) {
-            agents[i].fitness  /= 10
+            agents[i].fitness   /= 2
         }
         agents[i].fitness *= agents[i].fitness;
         if(agents[i].fitness < minFitness){
@@ -138,7 +143,7 @@ function fitness(){
     for(var i = 0; i < agents.length; i++){
         agents[i].fitness /= maxFitness
 
-        agents[i].fitness =  Math.pow(agents[i].fitness , 50);
+        agents[i].fitness =  Math.pow(agents[i].fitness , 4);
         totalFitness += agents[i].fitness;
 
     }
@@ -173,29 +178,51 @@ var agent = function(position){
     this.crashed = false;
     
     this.randomize = function(){
-        for(var i = 0; i < maxFrames+1; i++){
+        
+        /*for(var i = 0; i < maxFrames+1; i++){
             var x = Math.floor(Math.random() * 3)-1
             var y = Math.floor(Math.random() * 3)-1
             this.dna.push({x:x, y:y})
-        }
-    }
-    this.setDna = function(first, second){
-        var mid = floor(random(this.dna.length));
-        for(var i = 0; i < maxFrames+1; i++){
-            
-            if(i < mid){this.dna[i] = first[i];}
-            else{this.dna[i] = second[i];}
-            var m = Math.random();
-            if(m < mutationRate){
-
-                this.dna[i] = {x:Math.floor(Math.random() * 3)-1, y: Math.floor(Math.random() * 3)-1}
+        }*/
+        for (var i = 0; i < width/vecDensity; i++){
+            this.dna.push([])
+            for (var j = 0; j < height/vecDensity; j++){
+                var x = Math.floor(Math.random() * 3)-1
+                var y = Math.floor(Math.random() * 3)-1
+                this.dna[i].push({x:x, y:y})
             }
         }
+
+    }
+    this.setDna = function(first, second){
+        for (var i = 0; i < width/vecDensity; i++){
+            this.dna.push([])
+            for (var j = 0; j < height/vecDensity; j++){
+                var r =Math.floor( Math.random() * 2);
+                if(r == 0){
+                    this.dna[i].push(first[i][j])
+                }
+                else{
+                    this.dna[i].push(second[i][j])
+                }
+                var m = Math.random();
+                if(m < mutationRate){
+                    var x = Math.floor(Math.random() * 3)-1
+                    var y = Math.floor(Math.random() * 3)-1
+                    this.dna[i][j] = {x:x, y:y};
+                }
+               
+            }
+        }
+
+       
     }
     this.update = function(){
         if(!this.completed && !this.crashed){
-            this.acceleration.x = this.dna[count].x;
-            this.acceleration.y= this.dna[count].y;
+            var cellx =  Math.floor(this.position.x /vecDensity);
+            var celly =  Math.floor(this.position.y /vecDensity);
+            this.acceleration.x = this.dna[cellx][celly].x;
+            this.acceleration.y= this.dna[cellx][celly].y;
             this.velocity.x += this.acceleration.x
             this.velocity.y += this.acceleration.y
             this.position.x += this.velocity.x;
@@ -237,7 +264,7 @@ var agent = function(position){
             var p2 = o.p2;
             var dist = distToSegment(this.position, p1, p2)
             
-            console.log(dist)
+            
             if(dist < 5){
                 this.crashed = true;
             }
