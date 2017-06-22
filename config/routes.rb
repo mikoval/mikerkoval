@@ -17,6 +17,7 @@ Rails.application.routes.draw do
 
     get 'simulation/diffusion'
     get 'simulation/balloons'
+    get 'simulation/maze'
     get 'games/minesweeper'
     get 'games/tictactoe'
     get 'games/connect4'

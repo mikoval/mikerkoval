@@ -5,4 +5,7 @@ class SimulationController < ApplicationController
   def balloons
    render(:layout => "layouts/webgl")
   end
+  def maze
+   render(:layout => "layouts/webgl")
+  end
 end
