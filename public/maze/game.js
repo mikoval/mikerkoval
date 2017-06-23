@@ -63,10 +63,7 @@ function draw(){
         
     }
     noStroke();
-    fill("#FF00FF")
-    for(var i = 0; i < matingArr.length; i++){
-        ellipse(matingArr[i].position.x,matingArr[i].position.y, 10, 10 )
-    }
+    
 
     fill("#FFAAAA")
     ellipse(goal.x, goal.y, 30,30)
