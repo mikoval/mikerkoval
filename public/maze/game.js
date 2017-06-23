@@ -33,7 +33,7 @@ function setup() {
 
 
     for(var i = 0; i < population; i++){
-        var a = new agent ({x:width/2, y:height + 20})
+        var a = new agent ({x:width/2, y:height - height/10})
         a.randomize();
         agents.push(a)
     }
@@ -97,7 +97,7 @@ function breed(matingPool){
     var arr = []
     
     for(var i = 0 ; i < population; i++){
-        var a = new agent({x:width/2, y:height+20});
+        var a = new agent({x:width/2, y:height - height/10});
         var first = matingPool[Math.floor(Math.random() * matingPool.length)]
         var second = matingPool[Math.floor(Math.random() * matingPool.length)]
         a.setDna(first.dna, second.dna);
