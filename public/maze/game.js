@@ -28,12 +28,12 @@ function setup() {
     mutationRate = 0.01;
     maxSpeed = 5
     vecDensity = 3;
-    goal = {x:width/2, y:height/10}
+    goal = {x:width - width/10, y:height/2}
 
 
 
     for(var i = 0; i < population; i++){
-        var a = new agent ({x:width/2, y:height - height/10})
+        var a = new agent ({x:width/10, y:height - height/2})
         a.randomize();
         agents.push(a)
     }
@@ -97,7 +97,7 @@ function breed(matingPool){
     var arr = []
     
     for(var i = 0 ; i < population; i++){
-        var a = new agent({x:width/2, y:height - height/10});
+        var a = new agent({x:width/10, y:height - height/2});
         var first = matingPool[Math.floor(Math.random() * matingPool.length)]
         var second = matingPool[Math.floor(Math.random() * matingPool.length)]
         a.setDna(first.dna, second.dna);
@@ -188,7 +188,8 @@ var agent = function(position){
             this.dna.push([])
             for (var j = 0; j < height/vecDensity; j++){
                 var x = Math.floor(Math.random() * 3)-1
-                var y = Math.floor(Math.random() * 3)-1
+                //var y = Math.floor(Math.random() * 3)-1
+                var y = 0
                 this.dna[i].push({x:x, y:y})
             }
         }
@@ -208,8 +209,10 @@ var agent = function(position){
                 var m = Math.random();
                 if(m < mutationRate){
                     var x = Math.floor(Math.random() * 3)-1
-                    var y = Math.floor(Math.random() * 3)-1
-                    this.dna[i][j] = {x:x, y:y};
+                    var y = 0;
+                    var jump =Math.floor( Math.random() * 2)
+                    //var y = Math.floor(Math.random() * 3)-1
+                    this.dna[i][j] = {x:x, y:y, jump:jump};
                 }
                
             }
@@ -222,13 +225,26 @@ var agent = function(position){
             var cellx =  Math.floor(this.position.x /vecDensity);
             var celly =  Math.floor(this.position.y /vecDensity);
             this.acceleration.x = this.dna[cellx][celly].x;
-            this.acceleration.y= this.dna[cellx][celly].y;
+            
+
+            //this.acceleration.y= this.dna[cellx][celly].y;
             this.velocity.x += this.acceleration.x
             this.velocity.y += this.acceleration.y
+            if(this.land()){
+
+                this.velocity.y = -3;
+                var jump = this.dna[cellx][celly].jump;
+                if(jump){
+                    this.velocity.y = -50
+                }
+                
+            }
+            
             this.position.x += this.velocity.x;
             this.position.y += this.velocity.y;
             this.acceleration.x = 0;
-            this.acceleration.y = 0;
+            this.acceleration.y = 2;
+
             var mag = Math.pow(Math.pow(this.velocity.x,2)  + Math.pow(this.velocity.y,2)  , 0.5 )
             if(mag > maxSpeed){
                 this.velocity.x /= mag;
@@ -241,6 +257,8 @@ var agent = function(position){
             
 
         }
+        
+
         if(this.crash()){
             this.crashed = true;
         }
@@ -251,6 +269,21 @@ var agent = function(position){
         }
        
     }
+    this.land = function(){
+        for(var i = 0; i < obstacles.length; i++){
+            var o = obstacles[i];
+            var p1 = o.p1;
+            var p2 = o.p2;
+            var dist = distToSegment(this.position, p1, p2)
+            
+            console.log("here")
+            
+            if(dist < 5 && this.velocity.y > 0){
+                return true;
+            }
+        }
+        return false;
+    }
     this.draw = function(){
         fill("#FFFFFF")
         ellipse(this.position.x, this.position.y, 10, 10);
@@ -258,17 +291,7 @@ var agent = function(position){
     this.crash = function(){
         var x = this.position.x;
         var y = this.position.y;
-        for(var i = 0; i < obstacles.length; i++){
-            var o = obstacles[i];
-            var p1 = o.p1;
-            var p2 = o.p2;
-            var dist = distToSegment(this.position, p1, p2)
-            
-            
-            if(dist < 5){
-                this.crashed = true;
-            }
-        }
+        
         if (this.position.x > width || this.position.x < 0) {
           this.crashed = true;
         }
