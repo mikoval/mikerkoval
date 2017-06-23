@@ -27,7 +27,7 @@
     </style>
     <body>
     <div class = "controls">
-        Mutation Rate: <input type="range" id="mutation-slider" style = "width: 100px; display: inline-block" value="1" min = "0" max = "100"> <p style = "display:inline-block" id = "mutation-text">0.01</p> <br>
+        Mutation Rate: <input type="range" id="mutation-slider" style = "width: 100px; display: inline-block" value="1" min = "0" max = "100"> <p style = "display:inline-block" id = "mutation-text">0.001</p> <br>
         Population: <input type="range" id="population-slider" style = "width: 100px; display: inline-block" value="100" min = "1" max = "500"> <p style = "display:inline-block" id = "population-text">100</p><br>
         Life span: <input type="range" id="life-slider" style = "width: 100px; display: inline-block" value="100" min = "100" max = "1000"> <p style = "display:inline-block" id = "life-text">100</p>
     </div>
@@ -36,7 +36,7 @@
     </body>
     <script>
     $("#mutation-slider").on("change", function(e){
-        mutationRate = $(this).val() / 100;
+        mutationRate = $(this).val() / 1000;
         $("#mutation-text").text(mutationRate);
 
     })
