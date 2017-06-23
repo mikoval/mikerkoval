@@ -27,7 +27,7 @@ function setup() {
     population = 100;
     mutationRate = 0.01;
     maxSpeed = 5
-    vecDensity = 3;
+    vecDensity = 10;
     goal = {x:width/2, y:height/10}
 
 
