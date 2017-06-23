@@ -28,12 +28,12 @@ function setup() {
     mutationRate = 0.01;
     maxSpeed = 5
     vecDensity = 3;
-    goal = {x:width - width/10, y:height/2}
+    goal = {x:width/2, y:height/10}
 
 
 
     for(var i = 0; i < population; i++){
-        var a = new agent ({x:width/10, y:height - height/2})
+        var a = new agent ({x:width/2, y:height - height/10})
         a.randomize();
         agents.push(a)
     }
@@ -55,7 +55,7 @@ function draw(){
         
     }
     stroke("#FFFFFF")
-    strokeWeight(5)
+    strokeWeight(20)
     for(var i = 0; i < obstacles.length; i++){
         var o = obstacles[i]
         
@@ -97,7 +97,7 @@ function breed(matingPool){
     var arr = []
     
     for(var i = 0 ; i < population; i++){
-        var a = new agent({x:width/10, y:height - height/2});
+        var a = new agent({x:width/2, y:height - height/10});
         var first = matingPool[Math.floor(Math.random() * matingPool.length)]
         var second = matingPool[Math.floor(Math.random() * matingPool.length)]
         a.setDna(first.dna, second.dna);
@@ -188,8 +188,7 @@ var agent = function(position){
             this.dna.push([])
             for (var j = 0; j < height/vecDensity; j++){
                 var x = Math.floor(Math.random() * 3)-1
-                //var y = Math.floor(Math.random() * 3)-1
-                var y = 0
+                var y = Math.floor(Math.random() * 3)-1
                 this.dna[i].push({x:x, y:y})
             }
         }
@@ -209,10 +208,8 @@ var agent = function(position){
                 var m = Math.random();
                 if(m < mutationRate){
                     var x = Math.floor(Math.random() * 3)-1
-                    var y = 0;
-                    var jump =Math.floor( Math.random() * 2)
-                    //var y = Math.floor(Math.random() * 3)-1
-                    this.dna[i][j] = {x:x, y:y, jump:jump};
+                    var y = Math.floor(Math.random() * 3)-1
+                    this.dna[i][j] = {x:x, y:y};
                 }
                
             }
@@ -224,27 +221,22 @@ var agent = function(position){
         if(!this.completed && !this.crashed){
             var cellx =  Math.floor(this.position.x /vecDensity);
             var celly =  Math.floor(this.position.y /vecDensity);
-            this.acceleration.x = this.dna[cellx][celly].x;
-            
 
-            //this.acceleration.y= this.dna[cellx][celly].y;
-            this.velocity.x += this.acceleration.x
-            this.velocity.y += this.acceleration.y
-            if(this.land()){
-
-                this.velocity.y = -3;
-                var jump = this.dna[cellx][celly].jump;
-                if(jump){
-                    this.velocity.y = -50
-                }
-                
+            if(cellx <= 0 || cellx>=this.dna.length){return;}
+            if(celly <= 0 || celly>=this.dna.length){return;}
+            if(this.dna[cellx] == undefined){
+                console.log(this.position.x)
+                console.log(celly)
             }
             
+            this.acceleration.x = this.dna[cellx][celly].x;
+            this.acceleration.y= this.dna[cellx][celly].y;
+            this.velocity.x += this.acceleration.x
+            this.velocity.y += this.acceleration.y
             this.position.x += this.velocity.x;
             this.position.y += this.velocity.y;
             this.acceleration.x = 0;
-            this.acceleration.y = 2;
-
+            this.acceleration.y = 0;
             var mag = Math.pow(Math.pow(this.velocity.x,2)  + Math.pow(this.velocity.y,2)  , 0.5 )
             if(mag > maxSpeed){
                 this.velocity.x /= mag;
@@ -257,8 +249,6 @@ var agent = function(position){
             
 
         }
-        
-
         if(this.crash()){
             this.crashed = true;
         }
@@ -269,21 +259,6 @@ var agent = function(position){
         }
        
     }
-    this.land = function(){
-        for(var i = 0; i < obstacles.length; i++){
-            var o = obstacles[i];
-            var p1 = o.p1;
-            var p2 = o.p2;
-            var dist = distToSegment(this.position, p1, p2)
-            
-            console.log("here")
-            
-            if(dist < 5 && this.velocity.y > 0){
-                return true;
-            }
-        }
-        return false;
-    }
     this.draw = function(){
         fill("#FFFFFF")
         ellipse(this.position.x, this.position.y, 10, 10);
@@ -291,11 +266,74 @@ var agent = function(position){
     this.crash = function(){
         var x = this.position.x;
         var y = this.position.y;
-        
-        if (this.position.x > width || this.position.x < 0) {
+        for(var i = 0; i < obstacles.length; i++){
+            var o = obstacles[i];
+            var p1 = o.p1;
+            var p2 = o.p2;
+            var dist = distToSegment(this.position, p1, p2)
+            
+            
+            if(dist < 20){
+
+                var normal;
+
+
+                var distTwo = Math.sqrt(dist2(p1, this.position))
+                var distThree = Math.sqrt(dist2(p2, this.position))
+                if(distTwo == dist){
+                    normal = {x: this.position.x - p1.x, y: this.position.y - p1.y}
+                }
+                if(distThree == dist){
+                    normal = {x: this.position.x - p2.x, y: this.position.y - p2.y}
+                }
+                else{
+                    var dir = {x: p2.x - p1.x, y: p2.y - p1.y}
+                    normal = {x:- dir.y, y:dir.x};
+                    var tmp1 = {x: p1.x + normal.x , y: p1.y + normal.y}
+                    var tmpDistance1 = Math.sqrt(dist2(tmp1, this.position))
+                    var tmp2 = {x: p1.x - normal.x , y: p1.y - normal.y}
+                    var tmpDistance2 = Math.sqrt(dist2(tmp2, this.position))
+                    if(tmpDistance1 > tmpDistance2){
+
+                    }
+                    else{
+                        normal.x *= -1;
+                        normal.y *= -1;
+                    }
+
+                }
+
+                
+                var mag = Math.sqrt(normal.x * normal.x + normal.y * normal.y);
+                
+                
+                if(mag!= 0){
+                    normal.x /= mag;
+                    normal.y /= mag;
+                }
+                
+
+                
+
+                var dot = normal.x * this.velocity.x + normal.y * this.velocity.y;
+                
+                if(dot >0){
+                    this.velocity.x -= 2 * normal.x * dot;
+                    this.velocity.y -= 2 * normal.y * dot;
+                    this.position.x -= 2 * normal.x * dot;
+                    this.position.y -= 2 * normal.y * dot;
+                }
+              
+                
+               
+
+
+            }
+        }
+        if (this.position.x >= width || this.position.x <= 0) {
           this.crashed = true;
         }
-        if (this.position.y > height || this.position.y < 0) {
+        if (this.position.y >= height || this.position.y <= 0) {
           this.crashed = true;
         }
 
