@@ -7,6 +7,7 @@ Rails.application.routes.draw do
   get 'webgl/torch'
   get 'webgl/repel'
   get 'webgl/rain'
+  get 'webgl/smoke'
 
     get 'class/constraints'
     get 'class/rigidbody'

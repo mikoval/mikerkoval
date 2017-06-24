@@ -1,0 +1,123 @@
+<html>
+<body>
+<head>
+    <link rel="stylesheet" type="text/css" href="/smokeshader/smoke.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+       <script id="fragShader" type="shader-code">
+        uniform vec2 res;//The width and height of our screen
+        uniform sampler2D bufferTexture;//Our input texture
+        uniform vec3 smokeSource;
+        uniform vec4 objects[16];
+        uniform int objectsLength;
+        uniform float wind;
+        uniform float size;
+        void main() {
+            float diffusion = 0.6;
+            vec2 pixel = gl_FragCoord.xy / res.xy;
+            gl_FragColor = texture2D( bufferTexture, pixel );
+            float xPixel = 1.0/res.x; //The size of a single pixel
+            float yPixel = 1.0/res.y;
+            vec4 leftColor = vec4(0,0,0,0);
+            vec4 rightColor = vec4(0,0,0,0);
+            vec4 upColor = vec4(0,0,0,0);
+            vec4 downColor = vec4(0,0,0,0);
+            float count = 0.0;
+            if(pixel.x > 0.0 ){
+                count = count + (1.0  + wind);
+                leftColor = texture2D(bufferTexture,vec2(pixel.x-xPixel,pixel.y));
+            }
+            if(pixel.x < 1.0 - 1.0/res.x){
+                count = count + (1.0 - wind);
+                rightColor = texture2D(bufferTexture,vec2(pixel.x+xPixel,pixel.y));
+            }
+            if(pixel.y > 0.0 ){
+                count = count + 2.0;
+                downColor = texture2D(bufferTexture,vec2(pixel.x,pixel.y-yPixel));
+            }
+            if(pixel.y < 1.0 - 1.0/res.y){
+                count = count + 1.5;
+                upColor = texture2D(bufferTexture,vec2(pixel.x,pixel.y+yPixel));
+
+            }
+
+             
+             
+            //Diffuse equation
+            float rfactor = 8.0 * 0.016 * (leftColor.r*(1.0  + wind) + rightColor.r*(1.0  - wind) + downColor.r*2.0 + upColor.r*1.5 - count * gl_FragColor.r);
+            float gfactor = 8.0 * 0.016 * (leftColor.g*(1.0  + wind) + rightColor.g*(1.0  - wind) + downColor.g*2.0 + upColor.g*1.5 - count * gl_FragColor.g);
+            float bfactor = 8.0 * 0.016 * (leftColor.b*(1.0  + wind) + rightColor.b*(1.0  - wind) + downColor.b*2.0 + upColor.b*1.5 - count * gl_FragColor.b);
+            //We have to account for the low precision of texels
+            float minimum = 0.002;
+            if (rfactor >= -minimum && rfactor < 0.0) rfactor = -minimum;
+            if (gfactor >= -minimum && gfactor < 0.0) gfactor = -minimum;
+            if (bfactor >= -minimum && bfactor < 0.0) bfactor = -minimum; 
+            gl_FragColor.r += rfactor; 
+            gl_FragColor.g += gfactor; 
+            gl_FragColor.b += bfactor;    
+            
+
+
+         
+            if(objects[0].z > 0.0){float dist = distance(gl_FragCoord.xy, objects[0].xy);if(dist < size){ if(objects[0].a == 1.0){
+                        gl_FragColor.rgb += vec3(1.0, 0.0, 0.0);}if(objects[0].a == 2.0){gl_FragColor.rgb += vec3(0.0, 1.0, 0.0);}if(objects[0].a == 3.0){gl_FragColor.rgb += vec3(0.0, 0.0, 1.0);}}}
+            
+
+            if(objects[1].z > 0.0){float dist = distance(gl_FragCoord.xy, objects[1].xy);if(dist < size){ if(objects[1].a == 1.0){
+                        gl_FragColor.rgb += vec3(1.0, 0.0, 0.0);}if(objects[1].a == 2.0){gl_FragColor.rgb += vec3(0.0, 1.0, 0.0);}if(objects[1].a == 3.0){gl_FragColor.rgb += vec3(0.0, 0.0, 1.0);}}}
+            if(objects[2].z > 0.0){float dist = distance(gl_FragCoord.xy, objects[2].xy);if(dist < size){ if(objects[2].a == 1.0){
+                        gl_FragColor.rgb += vec3(1.0, 0.0, 0.0);}if(objects[2].a == 2.0){gl_FragColor.rgb += vec3(0.0, 1.0, 0.0);}if(objects[2].a == 3.0){gl_FragColor.rgb += vec3(0.0, 0.0, 1.0);}}}
+
+            if(objects[3].z > 0.0){float dist = distance(gl_FragCoord.xy, objects[3].xy);if(dist < size){ if(objects[3].a == 1.0){
+                        gl_FragColor.rgb += vec3(1.0, 0.0, 0.0);}if(objects[3].a == 2.0){gl_FragColor.rgb += vec3(0.0, 1.0, 0.0);}if(objects[3].a == 3.0){gl_FragColor.rgb += vec3(0.0, 0.0, 1.0);}}}
+            if(objects[4].z > 0.0){float dist = distance(gl_FragCoord.xy, objects[4].xy);if(dist < size){ if(objects[4].a == 1.0){
+                        gl_FragColor.rgb += vec3(1.0, 0.0, 0.0);}if(objects[4].a == 2.0){gl_FragColor.rgb += vec3(0.0, 1.0, 0.0);}if(objects[4].a == 3.0){gl_FragColor.rgb += vec3(0.0, 0.0, 1.0);}}}
+            if(objects[5].z > 0.0){float dist = distance(gl_FragCoord.xy, objects[5].xy);if(dist < size){ if(objects[5].a == 1.0){
+                        gl_FragColor.rgb += vec3(1.0, 0.0, 0.0);}if(objects[5].a == 2.0){gl_FragColor.rgb += vec3(0.0, 1.0, 0.0);}if(objects[5].a == 3.0){gl_FragColor.rgb += vec3(0.0, 0.0, 1.0);}}}
+            if(objects[6].z > 0.0){float dist = distance(gl_FragCoord.xy, objects[6].xy);if(dist < size){ if(objects[6].a == 1.0){
+                        gl_FragColor.rgb += vec3(1.0, 0.0, 0.0);}if(objects[6].a == 2.0){gl_FragColor.rgb += vec3(0.0, 1.0, 0.0);}if(objects[6].a == 3.0){gl_FragColor.rgb += vec3(0.0, 0.0, 1.0);}}}
+            if(objects[7].z > 0.0){float dist = distance(gl_FragCoord.xy, objects[7].xy);if(dist < size){ if(objects[7].a == 1.0){
+                        gl_FragColor.rgb += vec3(1.0, 0.0, 0.0);}if(objects[7].a == 2.0){gl_FragColor.rgb += vec3(0.0, 1.0, 0.0);}if(objects[7].a == 3.0){gl_FragColor.rgb += vec3(0.0, 0.0, 1.0);}}}
+            if(objects[8].z > 0.0){float dist = distance(gl_FragCoord.xy, objects[8].xy);if(dist < size){ if(objects[8].a == 1.0){
+                        gl_FragColor.rgb += vec3(1.0, 0.0, 0.0);}if(objects[8].a == 2.0){gl_FragColor.rgb += vec3(0.0, 1.0, 0.0);}if(objects[8].a == 3.0){gl_FragColor.rgb += vec3(0.0, 0.0, 1.0);}}}
+            if(objects[9].z > 0.0){float dist = distance(gl_FragCoord.xy, objects[9].xy);if(dist < size){ if(objects[9].a == 1.0){
+                        gl_FragColor.rgb += vec3(1.0, 0.0, 0.0);}if(objects[9].a == 2.0){gl_FragColor.rgb += vec3(0.0, 1.0, 0.0);}if(objects[9].a == 3.0){gl_FragColor.rgb += vec3(0.0, 0.0, 1.0);}}}
+            if(objects[10].z > 0.0){float dist = distance(gl_FragCoord.xy, objects[10].xy);if(dist < size){ if(objects[10].a == 1.0){
+                        gl_FragColor.rgb += vec3(1.0, 0.0, 0.0);}if(objects[10].a == 2.0){gl_FragColor.rgb += vec3(0.0, 1.0, 0.0);}if(objects[10].a == 3.0){gl_FragColor.rgb+= vec3(0.0, 0.0, 1.0);}}}
+            if(objects[11].z > 0.0){float dist = distance(gl_FragCoord.xy, objects[11].xy);if(dist < size){ if(objects[11].a == 1.0){
+                        gl_FragColor.rgb += vec3(1.0, 0.0, 0.0);}if(objects[11].a == 2.0){gl_FragColor.rgb += vec3(0.0, 1.0, 0.0);}if(objects[11].a == 3.0){gl_FragColor.rgb += vec3(0.0, 0.0, 1.0);}}}
+            
+         }
+    </script>
+    <script src = "/smokeshader/three.js"></script>
+    <script src = "/smokeshader/scene.js"></script>
+
+</head>
+<div class = "controls">
+    Size: <input type="range" id="size-slider" style = "width: 100px; display: inline-block" value="5" min = "0" max = "20"> <p style = "display:inline-block" id = "size-text">5</p> <br>
+    Wind: <input type="range" id="wind-slider" style = "width: 100px; display: inline-block" value="10" min = "0" max = "20"> <p style = "display:inline-block" id = "wind-text">0</p><br>
+    Rendering Rate: <input type="range" id="rate-slider" style = "width: 100px; display: inline-block" value="1" min = "1" max = "10"> <p style = "display:inline-block" id = "rate-text">1</p><br>
+    
+</div>
+
+ <script>
+    $("#size-slider").on("change", function(e){
+        size = $(this).val() ;
+        $("#size-text").text(size);
+        bufferMaterial.uniforms.size.value = size;
+
+    })
+    $("#wind-slider").on("change", function(e){
+        wind = Math.round(($(this).val()/10 - 1) * 10)/10;
+        $("#wind-text").text(wind);
+        bufferMaterial.uniforms.wind.value = wind;
+    })
+    $("#rate-slider").on("change", function(e){
+        renderingRate = $(this).val()
+        $("#rate-text").text(renderingRate);
+    })
+   
+    </script>
+
+</body>
+</html>

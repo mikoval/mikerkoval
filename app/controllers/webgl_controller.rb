@@ -5,4 +5,7 @@ class WebglController < ApplicationController
   def torch
    render(:layout => "layouts/webgl")
   end
+  def smoke
+    render(:layout => "layouts/webgl")
+  end
 end
