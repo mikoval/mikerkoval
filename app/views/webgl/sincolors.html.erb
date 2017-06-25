@@ -1,0 +1,215 @@
+<html>
+<body>
+<head>
+    <link rel="stylesheet" type="text/css" href="/sincolors/smoke.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <script id="DiffusionShader" type="shader-code"> 
+        uniform vec2 res;//The width and height of our screen
+        uniform sampler2D bufferTexture;//Our input texture
+        
+        void main() {
+
+            vec2 pixel = gl_FragCoord.xy / res.xy;
+            gl_FragColor = texture2D( bufferTexture, pixel );
+            float xPixel = 1.0/res.x; //The size of a single pixel
+            float yPixel = 1.0/res.y;
+            vec4 leftColor = vec4(0,0,0,0);
+            vec4 rightColor = vec4(0,0,0,0);
+            vec4 upColor = vec4(0,0,0,0);
+            vec4 downColor = vec4(0,0,0,0);
+
+            float diffusion = 0.01;
+           
+            float N = res.x * res.y;
+            float a = diffusion * N * 0.016;
+
+              
+                leftColor = texture2D(bufferTexture,vec2(pixel.x-xPixel,pixel.y));
+            
+                rightColor = texture2D(bufferTexture,vec2(pixel.x+xPixel,pixel.y));
+          
+         
+              
+                downColor = texture2D(bufferTexture,vec2(pixel.x,pixel.y-yPixel));
+           
+                
+                upColor = texture2D(bufferTexture,vec2(pixel.x,pixel.y+yPixel));
+
+            
+
+             
+             
+            //Diffuse equation
+            gl_FragColor.r = (gl_FragColor.r + a * (leftColor.r   + rightColor.r + upColor.r + downColor.r))/ (1.0 + 4.0 * a);
+            gl_FragColor.g = (gl_FragColor.g + a * (leftColor.g   + rightColor.g + upColor.g + downColor.g))/ (1.0 + 4.0 * a);
+            gl_FragColor.b = (gl_FragColor.b + a * (leftColor.b   + rightColor.b + upColor.b + downColor.b))/ (1.0 + 4.0 * a);
+
+            
+            
+        }
+    </script>
+    <script id="AddColorShader" type="shader-code">
+        uniform vec2 res;//The width and height of our screen
+        uniform sampler2D bufferTexture;//Our input texture
+        uniform vec4 smokeSource;
+
+        void main() {
+            vec2 pixel = gl_FragCoord.xy / res.xy;
+            gl_FragColor = texture2D( bufferTexture, pixel );
+            if(pixel.x <=  0.01 || pixel.x >= 0.99){
+                 gl_FragColor = vec4(0.0);
+            }
+            else if(pixel.y <= 0.01 || pixel.y >= 0.99){
+                 gl_FragColor = vec4(0.0);
+            }
+            else{
+                if(smokeSource.a > 0.0){
+                    float dist = distance(smokeSource.xy,gl_FragCoord.xy);
+                    if(dist<15.0){
+                        if(smokeSource.z == 1.0){
+                            gl_FragColor.r += 1.0;
+                        }
+                        else if(smokeSource.z == 2.0){
+                            gl_FragColor.g += 1.0;
+                        }
+                        else if(smokeSource.z == 3.0){
+                            gl_FragColor.b += 1.0;
+                        }
+                        
+                    }
+                    
+                }
+            }
+
+            
+            
+
+         }
+    </script>
+    <script id="AddVelocityShader" type="shader-code">
+        uniform vec2 res;//The width and height of our screen
+        uniform sampler2D bufferTexture;//Our input texture
+        uniform vec4 velocitySource;
+
+        void main() {
+            vec2 pixel = gl_FragCoord.xy / res.xy;
+            if(pixel.x <=  0.01 || pixel.x >= 0.99){
+                 gl_FragColor = vec4(0.5);
+            }
+            else if(pixel.y <= 0.01 || pixel.y >= 0.99){
+                 gl_FragColor = vec4(0.5);
+            }
+            else{
+                if(velocitySource.x > 0.0 || velocitySource.y > 0.0){
+                    float dist = distance(velocitySource.zw,gl_FragCoord.xy);
+                    if(dist<15.0){
+                       
+                        gl_FragColor.r += velocitySource.x;
+                        gl_FragColor.g += velocitySource.y;
+                        
+                        
+                    }
+                    
+                }
+                gl_FragColor = vec4(0.5 + (sin(2.0 * 3.14 * pixel.y * 5.0))/2.0,0.5 + (sin(2.0 * 3.14 * pixel.x * 5.0))/2.0,0.0,0.0);
+            }
+            
+            
+
+        }
+    </script>
+    <script id="AdvectionShader" type="shader-code">
+        uniform vec2 res;//The width and height of our screen
+        uniform sampler2D densityTexture;//Our input texture
+        uniform sampler2D velocityTexture;//Our input texture
+
+        void main() {
+            vec2 pixel = gl_FragCoord.xy / res.xy;
+            
+            if(pixel.x == 0.0 || pixel.x == 1.0){
+                gl_FragColor = vec4(1);
+            }
+            else if (pixel.y== 0.0 || pixel.y == 1.0){
+                gl_FragColor = vec4(1);
+            }
+            else{
+                highp int i0, j0, i1, j1;
+                float x, y, s0, s1, t0, t1, dxt0, dyt0;
+                float dt = 1.0/60.0;
+                float Nx = res.x -1.0;
+                float Ny = res.y -1.0;
+                float i = pixel.x;
+                float j = pixel.y;
+                
+                dxt0 = Nx * dt;
+                dyt0 = Ny * dt;
+                x = gl_FragCoord.x - dxt0 * (texture2D(velocityTexture, pixel).x - 0.5);
+                y = gl_FragCoord.y - dyt0 * (texture2D(velocityTexture, pixel).y - 0.5);
+                //if(x < 0.5) x = 0.5; 
+                //if(x > N + 0.5) x = N + 0.5;
+
+                x = x - 0.5;
+                y = y - 0.5;
+
+                if (x<0.5) x=0.5; 
+                if (x>Nx+0.5) x=Nx+0.5; 
+                i0=int(x); 
+                i1=i0+1;
+
+                if (y<0.5) y=0.5; 
+                if (y>Ny+0.5) y=Ny+0.5; 
+                j0=int(y); 
+                j1=j0+1;
+
+
+                s1 = x-float(i0); 
+                s0 = float(1)-s1; 
+                t1 = y-float(j0); 
+                t0 = float(1)-t1;
+
+
+                float p1 =  (t0 * texture2D(densityTexture, vec2(i0,j0)/res.xy).r);
+                float p2 =  (t1 * texture2D(densityTexture, vec2(i0,j1)/res.xy).r);
+                float p3 =  (t0 * texture2D(densityTexture, vec2(i1,j0)/res.xy).r);
+                float p4 =  (t1 * texture2D(densityTexture, vec2(i1,j1)/res.xy).r);
+                float total1 = s0 * (p1 + p2);
+                float total2 = s1 * (p3 + p4);
+                gl_FragColor.r = total1 + total2;
+
+                p1 =  (t0 * texture2D(densityTexture, vec2(i0,j0)/res.xy).g);
+                p2 =  (t1 * texture2D(densityTexture, vec2(i0,j1)/res.xy).g);
+                p3 =  (t0 * texture2D(densityTexture, vec2(i1,j0)/res.xy).g);
+                p4 =  (t1 * texture2D(densityTexture, vec2(i1,j1)/res.xy).g);
+                total1 = s0 * (p1 + p2);
+                total2 = s1 * (p3 + p4);
+                gl_FragColor.g = total1 + total2;
+
+                p1 =  (t0 * texture2D(densityTexture, vec2(i0,j0)/res.xy).b);
+                p2 =  (t1 * texture2D(densityTexture, vec2(i0,j1)/res.xy).b);
+                p3 =  (t0 * texture2D(densityTexture, vec2(i1,j0)/res.xy).b);
+                p4 =  (t1 * texture2D(densityTexture, vec2(i1,j1)/res.xy).b);
+                total1 = s0 * (p1 + p2);
+                total2 = s1 * (p3 + p4);
+                gl_FragColor.b = total1 + total2;
+
+                gl_FragColor *= 1.003;
+
+            
+            }
+            
+
+        }
+    </script>
+    <script src = "/sincolors/three.js"></script>
+    <script src = "/sincolors/scene.js"></script>
+
+</head>
+
+    
+
+
+
+
+</body>
+</html>

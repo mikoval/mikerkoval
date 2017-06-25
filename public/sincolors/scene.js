@@ -11,10 +11,10 @@ var paused = false;
 function scene_setup(){
     //This is the basic scene setup
     scene = new THREE.Scene();
-    var width = window.innerWidth;
+    var width = window.innerHeight;
     var height = window.innerHeight;
     renderingRate = 1;
-    dimensions = 2;
+    dimensions = 1;
     objs = [];
     //Note that we're using an orthographic camera here rather than a prespective
 
@@ -34,6 +34,8 @@ scene_setup();
 var addColorScene;
 var colorA;
 var colorB;
+var velocityA;
+var velocityB;
 var addColorMaterial;
 var diffuseMaterial;
 var plane;
@@ -44,10 +46,16 @@ var quad;
 
 function buffer_texture_setup(){
     //Create buffer scene
+
+
+    //add color 
+
     addColorScene = new THREE.Scene();
     //Create 2 buffer textures
     colorA = new THREE.WebGLRenderTarget( window.innerWidth/dimensions , window.innerHeight/dimensions, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter});
     colorB = new THREE.WebGLRenderTarget( window.innerWidth/dimensions , window.innerHeight/dimensions, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter} );
+    velocityA = new THREE.WebGLRenderTarget( window.innerWidth/dimensions , window.innerHeight/dimensions, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,});
+    velocityB = new THREE.WebGLRenderTarget( window.innerWidth/dimensions , window.innerHeight/dimensions, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter} );
 
     //Pass textureA to shader
     addColorMaterial = new THREE.ShaderMaterial( {
@@ -58,38 +66,59 @@ function buffer_texture_setup(){
         },
         fragmentShader: document.getElementById( 'AddColorShader' ).innerHTML
     } );
-    plane = new THREE.PlaneBufferGeometry( window.innerWidth, window.innerHeight );
+    plane = new THREE.PlaneBufferGeometry( window.innerHeight, window.innerHeight );
     addColorObject = new THREE.Mesh( plane, addColorMaterial );
 
     addColorScene.add(addColorObject);
 
 
-
+    //diffuse color
     diffuseScene = new THREE.Scene();
 
     diffuseMaterial = new THREE.ShaderMaterial( {
         uniforms: {
          bufferTexture: { type: "t", value: colorA },
          res : {type: 'v2',value:new THREE.Vector2(window.innerWidth/dimensions,window.innerHeight/dimensions)},//Keeps the resolution
-         smokeSource: {type:"v3",value:new THREE.Vector3(0,0,0)},
-         objects: {type:"v4v",value:[
-         new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),
-         new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),
-         new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),
-         new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),
-         new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),
-         new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),
-         new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),
-         new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),new THREE.Vector4(0,0,0,0),
-         ],},
-         objectsLength: {type:"i",value:0,},
-         wind: {type:"f",value:0.0,},
         },
         fragmentShader: document.getElementById( 'DiffusionShader' ).innerHTML
     } );
     diffuseObject = new THREE.Mesh( plane, diffuseMaterial );
 
     diffuseScene.add(diffuseObject);
+
+    //add velocity
+    addVelocityScene = new THREE.Scene();
+
+    addVelocityMaterial = new THREE.ShaderMaterial( {
+        uniforms: {
+         bufferTexture: { type: "t", value: velocityA },
+         res : {type: 'v2',value:new THREE.Vector2(window.innerWidth/dimensions,window.innerHeight/dimensions)},
+         velocitySource: {type:"v4",value:new THREE.Vector4(0,0,0,0)},
+
+        },
+        fragmentShader: document.getElementById( 'AddVelocityShader' ).innerHTML
+    } );
+    addVelocityObject = new THREE.Mesh( plane, addVelocityMaterial );
+
+    addVelocityScene.add(addVelocityObject);
+
+    //advect color
+
+    //add velocity
+    advectScene = new THREE.Scene();
+
+    advectMaterial = new THREE.ShaderMaterial( {
+        uniforms: {
+         densityTexture: { type: "t", value: colorA },
+         velocityTexture: { type: "t", value: velocityA },
+         res : {type: 'v2',value:new THREE.Vector2(window.innerWidth/dimensions,window.innerHeight/dimensions)},
+
+        },
+        fragmentShader: document.getElementById( 'AdvectionShader' ).innerHTML
+    } );
+    advectObject = new THREE.Mesh( plane, advectMaterial );
+
+    advectScene.add(advectObject);
 
 
 
@@ -117,7 +146,6 @@ document.onmousemove = function(event){
 document.onmousedown = function(event){
     
     addColorMaterial.uniforms.smokeSource.value.w = 1.0;
-    console.log(addColorMaterial.uniforms.smokeSource.value)
 }
 document.onmouseup = function(event){
     addColorMaterial.uniforms.smokeSource.value.w = 0.0;
@@ -139,10 +167,15 @@ document.onkeypress = function(event){
     }
 };
 //Render everything!
-function swap(){
+function swapColor(){
     var t = colorA;
     colorA = colorB;
     colorB = t;
+}
+function swapVelocity(){
+    var t = velocityA;
+    velocityA = velocityB;
+    velocityB = t;
 }
 function render() {
 
@@ -151,27 +184,36 @@ function render() {
   
 
    //velocity
-    
-    
+    addColorMaterial.uniforms.bufferTexture.value = velocityA;
+    renderer.render(addVelocityScene,camera,velocityB,true);
+
+    swapVelocity();
     //diffusion
     addColorMaterial.uniforms.bufferTexture.value = colorA;
     renderer.render(addColorScene,camera,colorB,true);
-    swap();
+    swapColor();
     if(!paused){
         for(var j = 0; j < 1; j++){
             diffuseMaterial.uniforms.bufferTexture.value = colorA;
             renderer.render(diffuseScene,camera,colorB,true);
 
-            swap();
+            swapColor();
         }
     
     }
     
     //advect 
+    if(!paused){
+        advectMaterial.uniforms.densityTexture.value = colorA;
+        advectMaterial.uniforms.velocityTexture.value = velocityA;
+        renderer.render(advectScene,camera,colorB,true);
+        swapColor();
+    }
     
     //draw to screen
     quad.material.map = colorA;
     renderer.render( scene, camera );
+    
 
 
 }

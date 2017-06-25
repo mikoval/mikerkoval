@@ -8,7 +8,7 @@ class WebglController < ApplicationController
   def smoke
     render(:layout => "layouts/webgl")
   end
-  def fluid
+  def sincolors
     render(:layout => "layouts/webgl")
   end
 end
