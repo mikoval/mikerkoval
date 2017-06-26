@@ -52,10 +52,10 @@ function buffer_texture_setup(){
 
     addColorScene = new THREE.Scene();
     //Create 2 buffer textures
-    colorA = new THREE.WebGLRenderTarget( window.innerWidth/dimensions , window.innerHeight/dimensions, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter});
-    colorB = new THREE.WebGLRenderTarget( window.innerWidth/dimensions , window.innerHeight/dimensions, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter} );
-    velocityA = new THREE.WebGLRenderTarget( window.innerWidth/dimensions , window.innerHeight/dimensions, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,});
-    velocityB = new THREE.WebGLRenderTarget( window.innerWidth/dimensions , window.innerHeight/dimensions, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter} );
+    colorA = new THREE.WebGLRenderTarget( window.innerWidth/dimensions , window.innerHeight/dimensions, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.HalfFloatType });
+    colorB = new THREE.WebGLRenderTarget( window.innerWidth/dimensions , window.innerHeight/dimensions, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,  type: THREE.HalfFloatType} );
+    velocityA = new THREE.WebGLRenderTarget( window.innerWidth/dimensions , window.innerHeight/dimensions, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.HalfFloatType});
+    velocityB = new THREE.WebGLRenderTarget( window.innerWidth/dimensions , window.innerHeight/dimensions, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.HalfFloatType} );
 
     //Pass textureA to shader
     addColorMaterial = new THREE.ShaderMaterial( {
@@ -193,7 +193,7 @@ function render() {
     renderer.render(addColorScene,camera,colorB,true);
     swapColor();
     if(!paused){
-        for(var j = 0; j < 1; j++){
+        for(var j = 0; j < 3; j++){
             diffuseMaterial.uniforms.bufferTexture.value = colorA;
             renderer.render(diffuseScene,camera,colorB,true);
 

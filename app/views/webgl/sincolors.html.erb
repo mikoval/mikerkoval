@@ -112,7 +112,7 @@
                     }
                     
                 }
-                gl_FragColor = vec4(0.5 + (sin(2.0 * 3.14 * pixel.y * 5.0))/2.0,0.5 + (sin(2.0 * 3.14 * pixel.x * 5.0))/2.0,0.0,0.0);
+                gl_FragColor = vec4((sin(2.0 * 3.14 * pixel.y * 5.0))/2.0, (sin(2.0 * 3.14 * pixel.x * 5.0))/2.0,0.0,0.0);
             }
             
             
@@ -144,8 +144,8 @@
                 
                 dxt0 = Nx * dt;
                 dyt0 = Ny * dt;
-                x = gl_FragCoord.x - dxt0 * (texture2D(velocityTexture, pixel).x - 0.5);
-                y = gl_FragCoord.y - dyt0 * (texture2D(velocityTexture, pixel).y - 0.5);
+                x = gl_FragCoord.x - dxt0 * (texture2D(velocityTexture, pixel).x );
+                y = gl_FragCoord.y - dyt0 * (texture2D(velocityTexture, pixel).y );
                 //if(x < 0.5) x = 0.5; 
                 //if(x > N + 0.5) x = N + 0.5;
 
