@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   get 'webgl/rain'
   get 'webgl/smoke'
   get 'webgl/sincolors'
+  get 'webgl/fluid'
 
     get 'class/constraints'
     get 'class/rigidbody'

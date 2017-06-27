@@ -11,4 +11,7 @@ class WebglController < ApplicationController
   def sincolors
     render(:layout => "layouts/webgl")
   end
+  def fluid
+    render(:layout => "layouts/webgl")
+  end
 end
