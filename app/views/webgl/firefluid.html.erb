@@ -1,0 +1,296 @@
+<html>
+<body>
+<style>
+body{
+    margin:0px;
+}
+</style>
+
+<canvas id = "c" width="150" height = "150" style = "width:100%; height:100%"></canvas>
+</body>
+<script>
+
+//setup the initial variables    
+var canvas = document.getElementById('c'),
+    WIDTH = canvas.width,
+    HEIGHT = canvas.height,
+    sx = canvas.width/canvas.clientWidth,
+    sy = canvas.height/canvas.clientHeight,
+    ctx = canvas.getContext('2d');
+    v = 4.0;
+    dt = 1/60;
+
+var mouseX = 0, mouseY = 0,
+    lastMouseX = 0, lastMouseY = 0;
+
+var rect = canvas.getBoundingClientRect(),
+    windowleft = rect.left,
+    windowtop = rect.top;
+canvas.addEventListener('mousemove', function(e) {
+    mouseX = (e.clientX - windowleft),
+    mouseY = (e.clientY - windowtop);
+
+    
+})
+
+ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+
+var imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT),
+    u0 =  new Float32Array(WIDTH*HEIGHT),
+    v0 =  new Float32Array(WIDTH*HEIGHT),
+    u1 =  new Float32Array(WIDTH*HEIGHT),
+    v1 =  new Float32Array(WIDTH*HEIGHT),
+   
+    p0 =  new Float32Array(WIDTH*HEIGHT),
+    p1 =  new Float32Array(WIDTH*HEIGHT),
+
+    div =  new Float32Array(WIDTH*HEIGHT),
+    step = 0.1;
+ 
+ // fluid functions
+ function diffuse(iterations){
+    var alpha = 1/(v* dt)
+    var beta = 1/(4 + 1/(v*dt))
+    
+    for(var i = 0; i < iterations; i++){
+        for(var y = 1; y < HEIGHT-1; y++) {
+            for(var x = 1; x < WIDTH-1; x++) {
+                var x0 = u0[getIndex(x-1, y)],
+                    x1 = u0[getIndex(x+1, y)],
+                    y0 = u0[getIndex(x, y-1)],
+                    y1 = u0[getIndex(x, y+1)];
+                u1[getIndex(x, y)] =  (x0 + x1 + y0 + y1 + alpha * u0[getIndex(x, y)]) * beta;
+            }
+        }
+        var aux = u0;
+        u0 =u1;
+        u1 = aux;
+    }
+    
+    for(var i = 0; i < iterations; i++){
+        for(var y = 1; y < HEIGHT-1; y++) {
+            for(var x = 1; x < WIDTH-1; x++) {
+                var x0 = v0[getIndex(x-1, y)],
+                    x1 = v0[getIndex(x+1, y)],
+                    y0 = v0[getIndex(x, y-1)],
+                    y1 = v0[getIndex(x, y+1)];
+                v1[getIndex(x, y)] =  (x0 + x1 + y0 + y1 + alpha * v0[getIndex(x, y)]) * beta;
+            }
+        }
+        var aux = v0;
+        v0 =v1;
+        v1 = aux;
+    }
+    
+}
+ 
+ function advect(){
+    for(var y = 1; y < HEIGHT-1; y++) {
+        for(var x = 1; x < WIDTH-1; x++) {
+            var vx = u0[getIndex(x, y)]*step,
+                vy = v0[getIndex(x, y)]*step;
+            
+            u1[getIndex(x, y)] =  bilerp(u0, x+vx, y+vy);
+            v1[getIndex(x, y)] =  bilerp(v0, x+vx, y+vy);
+        }
+    }
+    var tmp1 = v0;
+        v0 =v1;
+        v1 = tmp1;
+    var tmp2 = u0;
+        u0 =u1;
+        u1 = tmp2;
+ }
+ function computeDivergence(){
+    for(var y = 1; y < HEIGHT-1; y++) {
+        for(var x = 1; x < WIDTH-1; x++) {
+            // compute divergence using central difference
+            var x0 = u0[getIndex(x-1, y)],
+                x1 = u0[getIndex(x+1, y)],
+                y0 = v0[getIndex(x, y-1)],
+                y1 = v0[getIndex(x, y+1)];
+            div[getIndex(x,y)] = (x1-x0 + y1-y0)*0.5;
+        }
+    }
+}
+function computePressure(iterations){
+    var alpha = -1;
+    var beta = 0.25;
+    
+    for(var i = 0; i < p0.length; i++) {
+       p0[i] = 0.5;
+       p1[i] = 0.5;
+    }
+
+    for(i = 0; i < iterations; i++) {
+        for(var y = 1; y < HEIGHT-1; y++) {
+            for(var x = 1; x < WIDTH-1; x++) {
+                var x0 = p0[getIndex(x-1, y)],
+                    x1 = p0[getIndex(x+1, y)],
+                    y0 = p0[getIndex(x, y-1)],
+                    y1 = p0[getIndex(x, y+1)];
+                p1[getIndex(x,y)] =  (x0 + x1 + y0 + y1 + alpha * div[getIndex(x, y)]) * beta;
+            }
+        }
+        var aux = p0;
+        p0 = p1;
+        p1 = aux;
+        pressureboundary(p0);
+    }
+
+
+}
+
+function pressureboundary(){
+    for(var x = 0; x < WIDTH; x++) {
+        p0[getIndex(x, 0)] =   p0[getIndex(x, 1)];
+        p0[getIndex(x, HEIGHT-1)] =   p0[getIndex(x, HEIGHT-2)];
+    }
+    for(var y = 0; y < HEIGHT; y++) {
+        p0[getIndex(0, y)] =   p0[getIndex(1, y)];
+        p0[getIndex(WIDTH-1, y)] =   p0[getIndex(WIDTH-2, y)];
+    }
+}
+
+function velocityboundary(ux, uy){
+    for(var x = 0; x < WIDTH; x++) {
+        //u0[getIndex(x, 0)] =   -u0[getIndex(x, 1)];
+        //u0[getIndex(x, HEIGHT-1)] = -u0[getIndex(x, HEIGHT-2)];
+        v0[getIndex(x, 0)] =   -v0[getIndex(x, 1)];
+        v0[getIndex(x, HEIGHT-1)] =  -v0[getIndex(x, HEIGHT-2)];
+    }
+    for(var y = 0; y < HEIGHT; y++) {
+        u0[getIndex(0, y)] =   -u0[getIndex(1, y)];
+        u0[getIndex(WIDTH-1, y)] =   -u0[getIndex(WIDTH-2, y)];
+        //v0[getIndex(0, y)] =   -v0[getIndex(1, y)];
+        //v0[getIndex(WIDTH-1, y)] =   -v0[getIndex(WIDTH-2, y)];
+    }
+    
+}
+function subtractPressureGradient(){
+    for(var y = 1; y < HEIGHT-1; y++) {
+        for(var x = 1; x < WIDTH-1; x++) {
+            var x0 = p0[getIndex(x-1, y)],
+                x1 = p0[getIndex(x+1, y)],
+                y0 = p0[getIndex(x, y-1)],
+                y1 = p0[getIndex(x, y+1)],
+                dx = (x1-x0)/2,
+                dy = (y1-y0)/2;
+                u0[getIndex(x,y)] -= dx;
+                v0[getIndex(x,y)] -= dy;
+        }
+    }
+}
+
+//utility functions
+
+function simulate(){
+    velocityboundary();
+    //advect
+    advect()
+    diffuse
+    velocityboundary();
+    //diffuse(20);
+    
+    addMouseForce(u0, v0)
+    
+    
+    computeDivergence();
+    // needs an even number of iterations
+    computePressure(60);
+    
+
+    subtractPressureGradient();
+    
+    
+    
+}
+function lerp(a, b, c){
+    c = c < 0 ? 0 : (c > 1 ? 1 : c);
+    //c = clamp(c, 0, 1);
+    return a * (1 - c) + b * c;
+}
+function addMouseForce(u, v){
+    var x = mouseX*sx,
+        y = mouseY*sy;
+    x = Math.floor(x)
+    y = Math.floor(y)
+    if(x < 1) x = 1;
+    if (x > WIDTH-2) x = WIDTH-2;
+    if(y < 1) y = 1;
+    if (y > HEIGHT-2) y = HEIGHT-2;
+        
+        
+    var dx = mouseX-lastMouseX,
+        dy = mouseY-lastMouseY;
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+    u[getIndex(x,y)] -= dx * 10;
+    v[getIndex(x,y)] -= dy * 10;
+    
+}
+
+function bilerp(sample, x, y) {
+    var x0 = Math.floor(x),
+        y0 = Math.floor(y),
+        x1 = x0+1,
+        y1 = y0+1;
+        
+        
+        p00 = sample[getIndex(x0, y0)],
+        p01 = sample[getIndex(x0, y1)],
+        p10 = sample[getIndex(x1, y0)],
+        p11 = sample[getIndex(x1, y1)];
+        
+        
+    return  lerp(lerp(p00, p10, x-x0), lerp(p01, p11, x-x0), y-y0);
+
+}
+
+function draw(u, v, p){
+    var d = imageData.data,
+        di, pi, ui;
+    for(var y = 0; y < HEIGHT; y++) {
+        for(var x = 0; x < WIDTH; x++) {
+            pi = (y*WIDTH+x);
+            ui = pi*2;
+            di = pi*4;
+            var length =  Math.sqrt(Math.pow(u[getIndex(x, y)],2) + Math.pow(v[getIndex(x, y)] ,2));
+            d[di+0] = length * 10;
+       
+            d[di+1] = length*7;
+            d[di+2] = 255 - length * 7;
+        }
+    }
+    ctx.putImageData(imageData, 0, 0);
+}
+function getIndex(x, y){
+    if(x < 0) x = 0;
+    if(x > WIDTH -1) x = WIDTH -1;
+    
+    if(y < 0) y = 0;
+    if(y > HEIGHT -1) y = HEIGHT -1;
+    
+    return y*WIDTH + x;
+}
+var requestAnimationFrame = (window.requestAnimationFrame       || 
+              window.webkitRequestAnimationFrame || 
+              window.mozRequestAnimationFrame    || 
+              window.oRequestAnimationFrame      || 
+              window.msRequestAnimationFrame     || 
+              function( callback ){
+                window.setTimeout(callback, 1000 / 60);
+              });
+
+(function animate(){
+    simulate();
+    draw(u0, v0, p0);
+    requestAnimationFrame(animate);
+})();
+
+
+
+
+</script>
+</html>

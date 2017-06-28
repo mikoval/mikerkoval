@@ -8,4 +8,7 @@ class SimulationController < ApplicationController
   def maze
    render(:layout => "layouts/webgl")
   end
+  def firefluid
+   render(:layout => "layouts/webgl")
+  end
 end
