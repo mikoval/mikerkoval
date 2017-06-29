@@ -22,6 +22,7 @@ Rails.application.routes.draw do
     get 'simulation/balloons'
     get 'simulation/maze'
     get 'simulation/firefluid'
+    get 'simulation/fluid'
     get 'games/minesweeper'
     get 'games/tictactoe'
     get 'games/connect4'
