@@ -41,6 +41,11 @@ p{
 
 </div>
 <canvas id = "c" width="150" height = "150" style = "width:100%; height:100%"></canvas>
+<canvas id = "img_canvas" width="150" height = "150" style = "display:none"</canvas>
+<img src="/images/monalisa.jpg"   id = "mona-lisa" style = "display:none">
+<img src="/images/forest.jpg"  id = "forest" style = "display:none">
+<img src="/images/octopus.jpg"  id = "octopus" style = "display:none">
+<img src="/images/sunset.jpg"  id = "sunset" style = "display:none">
 </body>
 <script>
 
@@ -51,9 +56,11 @@ var canvas = document.getElementById('c'),
     sx = canvas.width/canvas.clientWidth,
     sy = canvas.height/canvas.clientHeight,
     ctx = canvas.getContext('2d');
-    v = 4.0;
     dt = 1/60;
+    step = 0.1;
+    viscosity = 10.0; 
     DensityDisplay = true;
+    paused = false;
 
 var mouseX = 0, mouseY = 0,
     lastMouseX = 0, lastMouseY = 0;
@@ -82,8 +89,23 @@ document.addEventListener('keydown', function(e){
     if(e.key == "1"){
         setCheckered();
     }
+    if(e.key == "2"){
+        setMonsaLisa();
+    }
+    if(e.key == "3"){
+        setForest();
+    }
+    if(e.key == "4"){
+        setOctopus();
+    }
+    if(e.key == "5"){
+        setSunset();
+    }
     if(e.key == "h"){
         toggleControls();
+    }
+    if(e.key == " "){
+        togglePause();
     }
     if(e.key == "r")
         color = "r"
@@ -120,8 +142,8 @@ var imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT),
     p0 =  new Float32Array(WIDTH*HEIGHT),
     p1 =  new Float32Array(WIDTH*HEIGHT),
 
-    div =  new Float32Array(WIDTH*HEIGHT),
-    step = 0.1;
+    div =  new Float32Array(WIDTH*HEIGHT)
+
  
  // fluid functions
  function toggleControls(){
@@ -129,8 +151,10 @@ var imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT),
     control.style.display = control.style.display === 'none' ? '' : 'none';
  }
  function diffuse(iterations){
-    var alpha = 1/(v* dt)
-    var beta = 1/(4 + 1/(v*dt))
+
+
+    var alpha = WIDTH * WIDTH * 1/60 *viscosity
+    var beta = 1/(4 + alpha)
     
     for(var i = 0; i < iterations; i++){
         for(var y = 1; y < HEIGHT-1; y++) {
@@ -189,7 +213,7 @@ var imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT),
                 x1 = u0[getIndex(x+1, y)],
                 y0 = v0[getIndex(x, y-1)],
                 y1 = v0[getIndex(x, y+1)];
-            div[getIndex(x,y)] = (x1-x0 + y1-y0)*0.5;
+            div[getIndex(x,y)] = ( (x1-x0) + (y1-y0))*0.5;
         }
     }
 }
@@ -280,8 +304,8 @@ function subtractPressureGradient(){
     }
 }
 function diffuseDensity(iterations){
-    var alpha = 1/(0.3* dt)
-    var beta = 1/(4 + 1/(0.3*dt))
+    var alpha = WIDTH * WIDTH * 1/60 *viscosity
+    var beta = 1/(4 + alpha)
     
     for(var i = 0; i < iterations; i++){
         for(var y = 1; y < HEIGHT-1; y++) {
@@ -340,8 +364,14 @@ function advectDensity(){
 //utility functions
 
 function simulate(){
+    if(click)
+        addDensity();
+    if(paused){
+        return;
+    }
     velocityboundary();
-    //advect
+
+
     advect()
     
     velocityboundary();
@@ -352,17 +382,20 @@ function simulate(){
     
     computeDivergence();
     // needs an even number of iterations
-    computePressure(60);
+    computePressure(30);
     
 
     subtractPressureGradient();
 
     //density update
 
-    diffuseDensity(1);
+    
+    
+    //diffuseDensity(20);
     advectDensity();
-    if(click)
-        addDensity();
+
+
+    
     densityBoundary();
 
 
@@ -391,8 +424,8 @@ function addMouseForce(u, v){
         dy = mouseY-lastMouseY;
     lastMouseX = mouseX;
     lastMouseY = mouseY;
-    u[getIndex(x,y)] -= dx * 300;
-    v[getIndex(x,y)] -= dy * 300;
+    u[getIndex(x,y)] -= dx * 30;
+    v[getIndex(x,y)] -= dy * 30;
     
 }
 function addDensity(){
@@ -413,18 +446,22 @@ function addDensity(){
             if(dist > 5)
                 continue;
             if(color=="r")
-                r[getIndex(x,y)] += 255;
+                r[getIndex(i,j)] = 255;
     
             if(color=="g")
-                g[getIndex(x,y)] += 255;
+                g[getIndex(i,j)] = 255;
             if(color=="b")
-                b[getIndex(x,y)] += 255;
+                b[getIndex(i,j)] = 255;
         }
     }
         
     
 }
 function bilerp(sample, x, y) {
+    if(x < 0.5) x = 0.5;
+    if(x > WIDTH - 1.5) x = WIDTH - 1.5;
+    if(y < 0.5) y = 0.5;
+    if(y > HEIGHT - 1.5) y = HEIGHT - 1.5;
     var x0 = Math.floor(x),
         y0 = Math.floor(y),
         x1 = x0+1,
@@ -508,6 +545,61 @@ function setCheckered(){
         }
     }
 }
+function setMonsaLisa(){
+    var c=document.getElementById("img_canvas");
+    var ctx=c.getContext("2d");
+    var img=document.getElementById("mona-lisa");
+    ctx.drawImage(img,0,0,150,150);
+    var imgd = ctx.getImageData(0, 0, 150, 150);
+    var pix = imgd.data;
+    for(var i = 0; i < r.length; i++){       
+            r[i] = pix[i * 4];
+            g[i] = pix[i * 4 + 1];
+            b[i] = pix[i * 4  + 2];  
+    }
+}
+function setForest(){
+    var c=document.getElementById("img_canvas");
+    var ctx=c.getContext("2d");
+    var img=document.getElementById("forest");
+    ctx.drawImage(img,0,0,150,150);
+    var imgd = ctx.getImageData(0, 0, 150, 150);
+    var pix = imgd.data;
+    for(var i = 0; i < r.length; i++){       
+            r[i] = pix[i * 4];
+            g[i] = pix[i * 4 + 1];
+            b[i] = pix[i * 4  + 2];  
+    }
+}
+function setOctopus(){
+    var c=document.getElementById("img_canvas");
+    var ctx=c.getContext("2d");
+    var img=document.getElementById("octopus");
+    ctx.drawImage(img,0,0,150,150);
+    var imgd = ctx.getImageData(0, 0, 150, 150);
+    var pix = imgd.data;
+    for(var i = 0; i < r.length; i++){       
+            r[i] = pix[i * 4];
+            g[i] = pix[i * 4 + 1];
+            b[i] = pix[i * 4  + 2];  
+    }
+}
+function setSunset(){
+    var c=document.getElementById("img_canvas");
+    var ctx=c.getContext("2d");
+    var img=document.getElementById("sunset");
+    ctx.drawImage(img,0,0,150,150);
+    var imgd = ctx.getImageData(0, 0, 150, 150);
+    var pix = imgd.data;
+    for(var i = 0; i < r.length; i++){       
+            r[i] = pix[i * 4];
+            g[i] = pix[i * 4 + 1];
+            b[i] = pix[i * 4  + 2];  
+    }
+}
+function togglePause(){
+    paused = !paused;
+}
 function resetVelocity(){
     for(var i = 0; i < WIDTH; i++){
         for(var j = 0; j < HEIGHT; j++){
@@ -531,6 +623,16 @@ function resetDensity(){
             
         }
     }
+}
+function printDensity(){
+    var count = 0;
+    for(var i = 1 ; i < WIDTH -1; i++){
+        for(var j= 1 ; j < HEIGHT -1; j++){
+            count += r[getIndex(i,j)]
+        }
+        
+    }
+    console.log(count)
 }
 
 //setCheckered();
