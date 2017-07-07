@@ -248,9 +248,9 @@ function start_simulation(simulation_size, mouse_size){
 
         
         if(!paused){
-            addVelocityMaterial.uniforms.velocitySource.value.x = -1 * mouseRadius/3 * (mouseX - prevX);
+            addVelocityMaterial.uniforms.velocitySource.value.x = -5 * mouseRadius/3 * (mouseX - prevX);
 
-            addVelocityMaterial.uniforms.velocitySource.value.y =  -1 * mouseRadius/3 * (mouseY - prevY);
+            addVelocityMaterial.uniforms.velocitySource.value.y =  -5 * mouseRadius/3 * (mouseY - prevY);
             
 
             addVelocityMaterial.uniforms.velocitySource.value.z = mouseX;
