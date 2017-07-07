@@ -440,7 +440,7 @@ function start_simulation(simulation_size, mouse_size){
             
             v = 100;
             boundaryMaterial.uniforms.scale.value = -1.0;
-            for (var i = 0; i < 5; i ++ ){
+            for (var i = 0; i < 0; i ++ ){
                 diffuseMaterial.uniforms.x.value = velocityA;
                 diffuseMaterial.uniforms.b.value = velocityA;
                 diffuseMaterial.uniforms.alpha.value = (dx*dx) / (v * dt) ;
