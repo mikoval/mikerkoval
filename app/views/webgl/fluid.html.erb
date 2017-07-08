@@ -3,6 +3,18 @@
 <head>
     <link rel="stylesheet" type="text/css" href="/fluid/smoke.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script id="EraseShader" type="shader-code"> 
+        
+
+
+        void main() {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+
+
+    
+            
+        }
+    </script>
     <script id="BoundaryShader" type="shader-code"> 
         uniform vec2 res;//The width and height of our screen
         uniform sampler2D texture;//Our input texture
@@ -150,10 +162,9 @@
             gl_FragColor = texture2D( bufferTexture, pixel );
             
                
-            float mag = length(gl_FragColor.xyz);
            
 
-            gl_FragColor = vec4(0.1,sqrt(mag/10.0)*sqrt(mag/10.0), (mag/5.0)*(mag/5.0), 1.0);
+            gl_FragColor = vec4(0.5 + 0.5 * texture2D( bufferTexture, pixel ).r, 0.5 + 0.5 * texture2D( bufferTexture, pixel ).g, 0.0,  1.0);
 
             
             
@@ -311,7 +322,7 @@
     <button class="btn" type = "button" id = "low" onclick="start_simulation(128, 2)">Low</button>
     <button class="btn"type = "button"  id = "medium" onclick="start_simulation(256, 4,)">Medium</button>
     <button class="btn"type = "button"  id = "high" onclick="start_simulation(512, 8)">High</button>
-    <button class="btn"type = "button"  id = "ultra" onclick="start_simulation(1024, 12)">Ultra</button>
+    <button class="btn"type = "button"  id = "ultra" onclick="start_simulation(1024, 16)">Ultra</button>
 </div>
 <div id = "controls">
     <h3>Controls</h3>

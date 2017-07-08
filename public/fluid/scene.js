@@ -26,6 +26,7 @@ function start_simulation(simulation_size, mouse_size){
     document.getElementsByClassName('choose-resolution')[0].style.display = 'none';
     var width = simulation_size;
     var height = simulation_size;
+    
     mouseRadius = mouse_size;
 
     function scene_setup(){
@@ -49,6 +50,11 @@ function start_simulation(simulation_size, mouse_size){
         element.className += " c";
         element.style.width = "100%"
         element.style.height = "100%"
+        sx = canvas.width/canvas.clientWidth
+        sy = canvas.height/canvas.clientHeight
+        dt = 1/60;
+        dx = 1.0;
+        dy = 1.0;
         //$(element).css("width", "100%");
         //$(element).css("height", "100%");
         document.body.appendChild( element );
@@ -220,6 +226,19 @@ function start_simulation(simulation_size, mouse_size){
 
         showVelocityScene.add(showVelocityObject);
 
+        //erase texture
+        eraseScene = new THREE.Scene();
+
+        eraseMaterial = new THREE.ShaderMaterial( {
+            uniforms: {
+
+            },
+            fragmentShader: document.getElementById( 'EraseShader' ).innerHTML
+        } );
+        eraseObject = new THREE.Mesh( plane, eraseMaterial );
+
+        eraseScene.add(eraseObject);
+
 
 
         //Draw textureB to screen 
@@ -248,9 +267,9 @@ function start_simulation(simulation_size, mouse_size){
 
         
         if(!paused){
-            addVelocityMaterial.uniforms.velocitySource.value.x = -5 * mouseRadius/3 * (mouseX - prevX);
+            addVelocityMaterial.uniforms.velocitySource.value.x = -30 * mouseRadius/2 *(mouseX - prevX);
 
-            addVelocityMaterial.uniforms.velocitySource.value.y =  -5 * mouseRadius/3 * (mouseY - prevY);
+            addVelocityMaterial.uniforms.velocitySource.value.y =  -30* mouseRadius/2 *  (mouseY - prevY);
             
 
             addVelocityMaterial.uniforms.velocitySource.value.z = mouseX;
@@ -386,37 +405,16 @@ function start_simulation(simulation_size, mouse_size){
         densityA = densityB;
         densityB = t;
     }
-    function render() {
+    function velocityStep(){
+        advectVelocity();
 
-        requestAnimationFrame( render );
+        //diffuseVelocity();
 
-        dx = 1/(height);
-        dt = 1/60.0;
-
-        if(pressed){
-            addDensityMaterial.uniforms.densitySource.value.x = 5.0;
-            if(color == 1.0)
-                addDensityMaterial.uniforms.densitySource.value.y = 1.0;
-            else if(color == 2.0)
-                addDensityMaterial.uniforms.densitySource.value.y = 2.0;
-            else if (color == 3.0)
-                addDensityMaterial.uniforms.densitySource.value.y = 3.0;
-            addDensityMaterial.uniforms.densitySource.value.z = mouseX;
-            addDensityMaterial.uniforms.densitySource.value.w = mouseY;
-
-            addDensityMaterial.uniforms.bufferTexture.value = densityA;
-            renderer.render(addDensityScene,camera,densityB,true);
-            swapDensity();
-        }
-
-        if(!paused){
-            pressureTexture = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.HalfFloatType});
-            pressureTexture2 = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.HalfFloatType});
+        computePressure();
 
 
-            
-
-             //advect velocity
+    }
+    function advectVelocity(){
             boundaryMaterial.uniforms.scale.value = -1.0;
             boundaryMaterial.uniforms.texture.value = velocityA;
             renderer.render(boundaryScene,camera,velocityB,true);
@@ -434,24 +432,23 @@ function start_simulation(simulation_size, mouse_size){
             boundaryMaterial.uniforms.texture.value = velocityA;
             renderer.render(boundaryScene,camera,velocityB,true);
             swapVelocity();
-            
-            
-            //diffuse velocity
-            
-            v = 100;
+    }
+    function diffuseVelocity(){
+            v = 1.0;
+
             boundaryMaterial.uniforms.scale.value = -1.0;
+            diffuseMaterial.uniforms.alpha.value = (dx*dx) * v * dt ;
+            diffuseMaterial.uniforms.rBeta.value = 1.0/(4.0 + (dx*dx) * v * dt )
+
             for (var i = 0; i < 0; i ++ ){
                 diffuseMaterial.uniforms.x.value = velocityA;
                 diffuseMaterial.uniforms.b.value = velocityA;
-                diffuseMaterial.uniforms.alpha.value = (dx*dx) / (v * dt) ;
-                diffuseMaterial.uniforms.rBeta.value = 1.0/(4.0 + (dx * dx)/(v *dt))
+                
 
                 renderer.render(diffuseScene,camera,velocityB,true);
                 swapVelocity();
 
-                boundaryMaterial.uniforms.texture.value = velocityA;
-                renderer.render(boundaryScene,camera,velocityB,true);
-                swapVelocity();
+               
 
             }
             
@@ -459,14 +456,11 @@ function start_simulation(simulation_size, mouse_size){
             boundaryMaterial.uniforms.texture.value = velocityA;
             renderer.render(boundaryScene,camera,velocityB,true);
             swapVelocity();
+    }
+    function computePressure(){
 
-            
-            
-
-
-            
-            
-            
+            renderer.render(eraseScene,camera,pressureTexture,true);
+            renderer.render(eraseScene,camera,pressureTexture2,true);
             //compute divergence
             divergenceMaterial.uniforms.velocity.value = velocityA;
             renderer.render(divergenceScene,camera,divergenceTexture,true);
@@ -476,7 +470,7 @@ function start_simulation(simulation_size, mouse_size){
             diffuseMaterial.uniforms.alpha.value = -1 ;
             diffuseMaterial.uniforms.rBeta.value = 0.25;
             diffuseMaterial.uniforms.b.value = divergenceTexture;
-            for (var i = 0; i <5; i ++ ){
+            for (var i = 0; i <50; i ++ ){
                 diffuseMaterial.uniforms.x.value = pressureTexture;
                 renderer.render(diffuseScene,camera,pressureTexture2,true);
                 swapPressure();
@@ -495,17 +489,13 @@ function start_simulation(simulation_size, mouse_size){
             renderer.render(gradientScene,camera,velocityB,true);
             swapVelocity();
 
+    }
+    function densityStep(){
+        advectDensity();
 
-
-            //add density
-            boundaryMaterial.uniforms.scale.value = -1.0;
-            boundaryMaterial.uniforms.texture.value = velocityA;
-            renderer.render(boundaryScene,camera,velocityB,true);
-            swapVelocity();
-
-
-            
-            
+        //diffuseDensity();
+    }
+    function advectDensity(){
             //advect density
 
             advectMaterial.uniforms.timestep.value = dt;
@@ -516,20 +506,52 @@ function start_simulation(simulation_size, mouse_size){
 
             renderer.render(advectScene,camera,densityB,true);
             swapDensity();
-            
-            /*
-            //draw to screen
-            showVelocityMaterial.uniforms.bufferTexture.value = velocityA;
-            renderer.render(showVelocityScene,camera,velocityB,true);
+    }
+    function render() {
 
-            */
+        requestAnimationFrame( render );
+
+        
+
+        if(pressed){
+            addDensityMaterial.uniforms.densitySource.value.x = 5.0;
+            if(color == 1.0)
+                addDensityMaterial.uniforms.densitySource.value.y = 1.0;
+            else if(color == 2.0)
+                addDensityMaterial.uniforms.densitySource.value.y = 2.0;
+            else if (color == 3.0)
+                addDensityMaterial.uniforms.densitySource.value.y = 3.0;
+            addDensityMaterial.uniforms.densitySource.value.z = mouseX;
+            addDensityMaterial.uniforms.densitySource.value.w = mouseY;
+
+            addDensityMaterial.uniforms.bufferTexture.value = densityA;
+            renderer.render(addDensityScene,camera,densityB,true);
+            swapDensity();
+        }
+
+        if(!paused){
+            
+
+            //velocity step
+            velocityStep();
+            //density step
+            densityStep();
+           
+            
+         
+
+
+            
         }
         
         
             
         
         if(showVelocity){
-            quad.material.map = velocityA;
+            //draw to screen
+            showVelocityMaterial.uniforms.bufferTexture.value = velocityA;
+            renderer.render(showVelocityScene,camera,velocityB,true);
+            quad.material.map = velocityB;
         }
         else{
             quad.material.map = densityA;
