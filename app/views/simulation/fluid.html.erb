@@ -1,329 +1,33 @@
 <html>
 <body>
-<head>
-    <link rel="stylesheet" type="text/css" href="/fluid/smoke.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script id="EraseShader" type="shader-code"> 
-        
+<style>
+body{
+    margin:0px;
+}
+html, body {
+  width:  100%;
+  height: 100%;
+  margin: 0px;
+}
+#c{
+    width:100%;
+    height:100%;
+}
+#controls{
 
-
-        void main() {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-
-
-            
-            
-        }
-    </script>
-    <script id="BoundaryShader" type="shader-code"> 
-        uniform vec2 res;//The width and height of our screen
-        uniform sampler2D texture;//Our input texture
-        uniform float scale;
-
-        void main() {
-            float xPixel = 1.0/res.x;
-            float yPixel = 1.0/res.y;
-            vec2 pixel = gl_FragCoord.xy / res.xy;
-
-            gl_FragColor = texture2D( texture, pixel );
-            
-            if(pixel.x <= xPixel/2.0){
-                gl_FragColor.r =  scale * texture2D(texture, vec2(pixel.x+xPixel,pixel.y)).r;
-                gl_FragColor.g = scale * texture2D(texture, vec2(pixel.x+xPixel,pixel.y)).g;
-            }
-            if(pixel.x >= 1.0-xPixel/2.0){
-                gl_FragColor.r = scale * texture2D(texture, vec2(pixel.x-xPixel,pixel.y)).r;
-                gl_FragColor.g = scale * texture2D(texture, vec2(pixel.x-xPixel,pixel.y)).g;
-             
-            }
-            
-            if(pixel.y <= yPixel/2.0){
-                gl_FragColor.r = scale * texture2D(texture, vec2(pixel.x,pixel.y+yPixel)).r;
-                gl_FragColor.g =  scale * texture2D(texture, vec2(pixel.x,pixel.y+yPixel)).g;
-
-            }
-            if(pixel.y >= 1.0-yPixel/2.0){
-                gl_FragColor.r = scale * texture2D(texture, vec2(pixel.x,pixel.y-yPixel)).r;
-                gl_FragColor.g = scale * texture2D(texture, vec2(pixel.x,pixel.y-yPixel)).g;
-
-            }
-            
-
-           
-            
-            
-        }
-    </script>
-    <script id="DivergenceShader" type="shader-code"> 
-        uniform vec2 res;//The width and height of our screen
-        uniform sampler2D velocity;//Our input texture
-
-
-        void main() {
-            float xPixel = 1.0/res.x;
-            float yPixel = 1.0/res.y;
-            vec2 pixel = gl_FragCoord.xy / res.xy;
-            
-            vec4 leftColor  = texture2D(velocity, vec2(pixel.x-xPixel,pixel.y));
-            vec4 rightColor = texture2D(velocity, vec2(pixel.x+xPixel,pixel.y));
-            vec4 upColor    = texture2D(velocity, vec2(pixel.x,pixel.y+yPixel));
-            vec4 downColor  = texture2D(velocity, vec2(pixel.x,pixel.y-yPixel));
-
-           
-           
-
-            float div =  0.5 * ((rightColor.x - leftColor.x) + (upColor.y - downColor.y));
-            //Diffuse equation
-            gl_FragColor.r  = div;
-            gl_FragColor.g  = div;
-            gl_FragColor.b  = div;
-            gl_FragColor.a  = div;
-
-
-            
-            
-        }
-    </script>
-    <script id="GradientShader" type="shader-code"> 
-        uniform vec2 res;//The width and height of our screen
-        uniform sampler2D velocity;//Our input velocity
-        uniform sampler2D pressure;//Our input pressure
-
-       
-        void main() {
-
-            float xPixel = 1.0/res.x;
-            float yPixel = 1.0/res.y;
-            vec2 pixel = gl_FragCoord.xy / res.xy;
-            
-            vec4 leftColor  = texture2D(pressure, vec2(pixel.x-xPixel,pixel.y));
-            vec4 rightColor = texture2D(pressure, vec2(pixel.x+xPixel,pixel.y));
-            vec4 upColor    = texture2D(pressure, vec2(pixel.x,pixel.y+yPixel));
-            vec4 downColor  = texture2D(pressure, vec2(pixel.x,pixel.y-yPixel));
-
-           
-           
-            float dx = (rightColor.r - leftColor.r)/(2.0 );
-            float dy = (upColor.g - downColor.g)/(2.0 );
-           
-            //Diffuse equation
-            gl_FragColor = texture2D(velocity, pixel) ;
-            gl_FragColor.r -= dx;
-            gl_FragColor.g -= dy;
-
-            
-            
-        }
-    </script>
-    <script id="DiffusionShader" type="shader-code"> 
-        uniform vec2 res;//The width and height of our screen
-        uniform sampler2D x;//Our input texture
-        uniform sampler2D b;
-        uniform float alpha;
-        uniform float rBeta;
-
-
-        void main() {
-            float xPixel = 1.0/res.x;
-            float yPixel = 1.0/res.y;
-            vec2 pixel = gl_FragCoord.xy / res.xy;
-            gl_FragColor = texture2D( b, pixel );
-            
-            vec4 leftColor = texture2D(x,vec2(vec2(gl_FragCoord.x-1.0,gl_FragCoord.y))/res.xy);
-            vec4 rightColor = texture2D(x,vec2(vec2(gl_FragCoord.x+1.0,gl_FragCoord.y))/res.xy);
-            vec4 upColor = texture2D(x,vec2(vec2(gl_FragCoord.x,gl_FragCoord.y+1.0))/res.xy);
-           
-            vec4 downColor = texture2D(x,vec2(vec2(gl_FragCoord.x,gl_FragCoord.y-1.0))/res.xy);
-
-
-
-            
-            gl_FragColor.r = (texture2D(b,pixel).r * alpha +leftColor.r   + rightColor.r + upColor.r + downColor.r) * rBeta;
-
-            gl_FragColor.g = (texture2D(b,pixel).g * alpha +leftColor.g   + rightColor.g + upColor.g + downColor.g)* rBeta;
-
-            
-            gl_FragColor.b = (texture2D(b,pixel).b * alpha +leftColor.b   + rightColor.b + upColor.b + downColor.b)* rBeta;
-
-
-
-            
-            
-        }
-    </script>
-    
-    <script id="DisplayVelocityShader" type="shader-code">
-        uniform vec2 res;//The width and height of our screen
-        uniform sampler2D bufferTexture;//Our input texture
-
-
-        void main() {
-            vec2 pixel = gl_FragCoord.xy / res.xy;
-            gl_FragColor = texture2D( bufferTexture, pixel );
-            
-               
-           
-
-            gl_FragColor = vec4(0.5 + 0.5 * texture2D( bufferTexture, pixel ).r, 0.5 + 0.5 * texture2D( bufferTexture, pixel ).g, 0.0,  1.0);
-
-            
-            
-
-        }
-    </script>
-    <script id="AddVelocityShader" type="shader-code">
-        uniform vec2 res;//The width and height of our screen
-        uniform sampler2D bufferTexture;//Our input texture
-        uniform vec4 velocitySource;
-        uniform float velocitySize;
-        void main() {
-            vec2 pixel = gl_FragCoord.xy / res.xy;
-            gl_FragColor = texture2D( bufferTexture, pixel );
-            
-            
-                
-            float dist = distance(velocitySource.zw,gl_FragCoord.xy);
-            if(dist<velocitySize){
-               
-                gl_FragColor.r += velocitySource.x*1.0; 
-                gl_FragColor.g += velocitySource.y * 1.0;     
-                    
-            }
-        }
-    </script>
-    <script id="AddDensityShader" type="shader-code">
-        uniform vec2 res;//The width and height of our screen
-        uniform sampler2D bufferTexture;//Our input texture
-        uniform vec4 densitySource;
-        uniform float densitySize;
-        void main() {
-            vec2 pixel = gl_FragCoord.xy / res.xy;
-            gl_FragColor = texture2D( bufferTexture, pixel );
-            
-            
-                
-            float dist = distance(densitySource.zw,gl_FragCoord.xy);
-            if(dist<densitySize){
-                if(densitySource.y == 1.0)
-                    gl_FragColor.r = 1.0; 
-                else if(densitySource.y == 2.0)
-                    gl_FragColor.g = 1.0; 
-                else if(densitySource.y == 3.0)
-                    gl_FragColor.b = 1.0; 
-                   
-                    
-            }
-        }
-    </script>
-    <script id="AdvectionShader" type="shader-code">
-        uniform vec2 res;//The width and height of our screen
-        uniform sampler2D velocity;//input velocity
-        uniform sampler2D quantity;//quantity to advect
-        uniform float dx;
-        uniform float dt;
-
-        void main() {
-                vec2 pixel = gl_FragCoord.xy / res.xy;
-
-                float i0, j0, i1, j1;
-                float x, y, s0, s1, t0, t1, dxt0, dyt0;
-                
-                
-                float i = pixel.x;
-                float j = pixel.y;
-                
-                dxt0 = 0.1  ;
-                dyt0 = 0.1;
-
-                float xPixel = gl_FragCoord.x;
-                float yPixel = gl_FragCoord.y;
-                x = xPixel + dxt0 * (texture2D(velocity, pixel).x );
-                y = yPixel + dyt0 * (texture2D(velocity, pixel).y );
-
-
-                
-                
-                x = x - 0.5;
-                y = y - 0.5;
-
-                if(x < 0.5){x = 0.5;}
-                if(y < 0.5){y = 0.5;}
-                if(x >  res.x - 1.5){x = res.x - 1.5;}
-                if(y >  res.y - 1.5){y = res.y - 1.5;}
-
-
-
-                i0=float(int(x)); 
-                i1=i0 + 1.0;
-
-                j0=float(int(y)); 
-                j1=j0 + 1.0;
-
-
-                
-                s1 = x-i0;
-                if(s1 > 1.0){s1 = 1.0;} 
-                s0 = 1.0-s1;
-
-                t1 = y-j0; 
-                if(t1 > 1.0){t1 = 1.0;}
-                t0 = 1.0-t1;
-
-                
-                
-                i0 += 0.5;
-                j0 += 0.5;
-                i1 += 0.5;
-                j1 += 0.5;
-
-
-                float p1 =  (t0 * texture2D(quantity, vec2(i0,j0)/res.xy).r);
-                float p2 =  (t1 * texture2D(quantity, vec2(i0,j1)/res.xy).r);
-                float p3 =  (t0 * texture2D(quantity, vec2(i1,j0)/res.xy).r);
-                float p4 =  (t1 * texture2D(quantity, vec2(i1,j1)/res.xy).r);
-                float total1 = s0 * (p1 + p2);
-                float total2 = s1 * (p3 + p4);
-                gl_FragColor.r = total1 + total2;
-
-                p1 =  (t0 * texture2D(quantity, vec2(i0,j0)/res.xy).g);
-                p2 =  (t1 * texture2D(quantity, vec2(i0,j1)/res.xy).g);
-                p3 =  (t0 * texture2D(quantity, vec2(i1,j0)/res.xy).g);
-                p4 =  (t1 * texture2D(quantity, vec2(i1,j1)/res.xy).g);
-                total1 = s0 * (p1 + p2);
-                total2 = s1 * (p3 + p4);
-                gl_FragColor.g = total1 + total2;
-
-                p1 =  (t0 * texture2D(quantity, vec2(i0,j0)/res.xy).b);
-                p2 =  (t1 * texture2D(quantity, vec2(i0,j1)/res.xy).b);
-                p3 =  (t0 * texture2D(quantity, vec2(i1,j0)/res.xy).b);
-                p4 =  (t1 * texture2D(quantity, vec2(i1,j1)/res.xy).b);
-                total1 = s0 * (p1 + p2);
-                total2 = s1 * (p3 + p4);
-                gl_FragColor.b = total1 + total2;
-
-
-            
-             
-
-            
-            
-            
-
-        }
-    </script>
-    <script src = "/fluid/three.js"></script>
-    <script src = "/fluid/scene.js"></script>
-
-</head>
-
-    
-<div class ="choose-resolution">
-    <h2 class = "choose-button"> Pick simulation quality </h2>
-    <button class="btn" type = "button" id = "low" onclick="start_simulation(128, 2)">Low</button>
-    <button class="btn"type = "button"  id = "medium" onclick="start_simulation(256, 4,)">Medium</button>
-    <button class="btn"type = "button"  id = "high" onclick="start_simulation(512, 8)">High</button>
-    <button class="btn"type = "button"  id = "ultra" onclick="start_simulation(1024, 16)">Ultra</button>
-</div>
+    background-color:lightgray;
+    position: fixed;
+    padding:10px;
+    opacity: 0.7;
+}
+h3{
+    margin:1px;
+    padding:1px;
+}
+p{
+    margin:1px;
+}
+</style>
 <div id = "controls">
     <h3>Controls</h3>
     <p>Move mouse to create velocity</p>
@@ -336,7 +40,611 @@
     <p>Hide Controls: h</p>
 
 </div>
+<canvas id = "c" width="150" height = "150" style = "width:100%; height:100%"></canvas>
 
-
+<canvas id = "img_canvas" width="150" height = "150" style = "display:none"</canvas>
+<img src="images/monalisa.jpg"   id = "mona-lisa" style = "display:none">
+<img src="images/forest.jpg"  id = "forest" style = "display:none">
+<img src="images/octopus.jpg"  id = "octopus" style = "display:none">
+<img src="images/sunset.jpg"  id = "sunset" style = "display:none">
 </body>
+<script>
+
+//setup the initial variables    
+var canvas = document.getElementById('c'),
+    WIDTH = canvas.width,
+    HEIGHT = canvas.height,
+    sx = canvas.width/canvas.clientWidth,
+    sy = canvas.height/canvas.clientHeight,
+    ctx = canvas.getContext('2d');
+    dt = 1/60;
+    step = 0.1;
+    viscosity = 10.0; 
+    DensityDisplay = true;
+    paused = false;
+
+var mouseX = 0, mouseY = 0,
+    lastMouseX = 0, lastMouseY = 0;
+    click = false;
+    color = "r"
+
+var rect = canvas.getBoundingClientRect(),
+    windowleft = rect.left,
+    windowtop = rect.top;
+canvas.addEventListener('mousemove', function(e) {
+    mouseX = (e.clientX - windowleft),
+    mouseY = (e.clientY - windowtop);
+
+    
+})
+document.addEventListener('keydown', function(e){
+    if(e.key == "v"){
+        DensityDisplay = !DensityDisplay;
+    }
+    if(e.key == "c"){
+        resetVelocity();
+    }
+    if(e.key == "0"){
+        resetDensity();
+    }
+    if(e.key == "1"){
+        setCheckered();
+    }
+    if(e.key == "2"){
+        setMonsaLisa();
+    }
+    if(e.key == "3"){
+        setForest();
+    }
+    if(e.key == "4"){
+        setOctopus();
+    }
+    if(e.key == "5"){
+        setSunset();
+    }
+    if(e.key == "h"){
+        toggleControls();
+    }
+    if(e.key == " "){
+        togglePause();
+    }
+    if(e.key == "r")
+        color = "r"
+    if(e.key == "g")
+        color = "g"
+    if(e.key == "b")
+        color = "b"
+})
+document.addEventListener('mousedown', function(e){
+    
+    click = true;
+})
+
+document.addEventListener('mouseup', function(e){
+    
+    click = false;
+})
+
+ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+
+var imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT),
+    u0 =  new Float32Array(WIDTH*HEIGHT),
+    v0 =  new Float32Array(WIDTH*HEIGHT),
+    u1 =  new Float32Array(WIDTH*HEIGHT),
+    v1 =  new Float32Array(WIDTH*HEIGHT),
+    r = new Float32Array(WIDTH*HEIGHT),
+    g = new Float32Array(WIDTH*HEIGHT),
+    b = new Float32Array(WIDTH*HEIGHT),
+    r1 = new Float32Array(WIDTH*HEIGHT),
+    g1 = new Float32Array(WIDTH*HEIGHT),
+    b1 = new Float32Array(WIDTH*HEIGHT),
+   
+    p0 =  new Float32Array(WIDTH*HEIGHT),
+    p1 =  new Float32Array(WIDTH*HEIGHT),
+
+    div =  new Float32Array(WIDTH*HEIGHT)
+
+ 
+ // fluid functions
+ function toggleControls(){
+    var control = document.getElementById("controls")
+    control.style.display = control.style.display === 'none' ? '' : 'none';
+ }
+ function diffuse(iterations){
+
+
+    var alpha = WIDTH * WIDTH * 1/60 *viscosity
+    var beta = 1/(4 + alpha)
+    
+    for(var i = 0; i < iterations; i++){
+        for(var y = 1; y < HEIGHT-1; y++) {
+            for(var x = 1; x < WIDTH-1; x++) {
+                var x0 = u0[getIndex(x-1, y)],
+                    x1 = u0[getIndex(x+1, y)],
+                    y0 = u0[getIndex(x, y-1)],
+                    y1 = u0[getIndex(x, y+1)];
+                u1[getIndex(x, y)] =  (x0 + x1 + y0 + y1 + alpha * u0[getIndex(x, y)]) * beta;
+            }
+        }
+        var aux = u0;
+        u0 =u1;
+        u1 = aux;
+    }
+    
+    for(var i = 0; i < iterations; i++){
+        for(var y = 1; y < HEIGHT-1; y++) {
+            for(var x = 1; x < WIDTH-1; x++) {
+                var x0 = v0[getIndex(x-1, y)],
+                    x1 = v0[getIndex(x+1, y)],
+                    y0 = v0[getIndex(x, y-1)],
+                    y1 = v0[getIndex(x, y+1)];
+                v1[getIndex(x, y)] =  (x0 + x1 + y0 + y1 + alpha * v0[getIndex(x, y)]) * beta;
+            }
+        }
+        var aux = v0;
+        v0 =v1;
+        v1 = aux;
+    }
+    
+}
+ 
+ function advect(){
+    for(var y = 1; y < HEIGHT-1; y++) {
+        for(var x = 1; x < WIDTH-1; x++) {
+            var vx = u0[getIndex(x, y)]*step,
+                vy = v0[getIndex(x, y)]*step;
+            
+            u1[getIndex(x, y)] =  bilerp(u0, x+vx, y+vy);
+            v1[getIndex(x, y)] =  bilerp(v0, x+vx, y+vy);
+        }
+    }
+    var tmp1 = v0;
+        v0 =v1;
+        v1 = tmp1;
+    var tmp2 = u0;
+        u0 =u1;
+        u1 = tmp2;
+ }
+ function computeDivergence(){
+    for(var y = 1; y < HEIGHT-1; y++) {
+        for(var x = 1; x < WIDTH-1; x++) {
+            // compute divergence using central difference
+            var x0 = u0[getIndex(x-1, y)],
+                x1 = u0[getIndex(x+1, y)],
+                y0 = v0[getIndex(x, y-1)],
+                y1 = v0[getIndex(x, y+1)];
+            div[getIndex(x,y)] = ( (x1-x0) + (y1-y0))*0.5;
+        }
+    }
+}
+function computePressure(iterations){
+    var alpha = -1;
+    var beta = 0.25;
+    
+    for(var i = 0; i < p0.length; i++) {
+       p0[i] = 0.0;
+       p1[i] = 0.0;
+    }
+
+    for(i = 0; i < iterations; i++) {
+        for(var y = 1; y < HEIGHT-1; y++) {
+            for(var x = 1; x < WIDTH-1; x++) {
+                var x0 = p0[getIndex(x-1, y)],
+                    x1 = p0[getIndex(x+1, y)],
+                    y0 = p0[getIndex(x, y-1)],
+                    y1 = p0[getIndex(x, y+1)];
+                p1[getIndex(x,y)] =  (x0 + x1 + y0 + y1 + alpha * div[getIndex(x, y)]) * beta;
+            }
+        }
+        var aux = p0;
+        p0 = p1;
+        p1 = aux;
+        pressureboundary(p0);
+    }
+
+
+}
+
+function pressureboundary(){
+    for(var x = 0; x < WIDTH; x++) {
+        p0[getIndex(x, 0)] =   p0[getIndex(x, 1)];
+        p0[getIndex(x, HEIGHT-1)] =   p0[getIndex(x, HEIGHT-2)];
+    }
+    for(var y = 0; y < HEIGHT; y++) {
+        p0[getIndex(0, y)] =   p0[getIndex(1, y)];
+        p0[getIndex(WIDTH-1, y)] =   p0[getIndex(WIDTH-2, y)];
+    }
+}
+
+function velocityboundary(ux, uy){
+    for(var x = 0; x < WIDTH; x++) {
+        //u0[getIndex(x, 0)] =   -u0[getIndex(x, 1)];
+        //u0[getIndex(x, HEIGHT-1)] = -u0[getIndex(x, HEIGHT-2)];
+        v0[getIndex(x, 0)] =   -v0[getIndex(x, 1)];
+        v0[getIndex(x, HEIGHT-1)] =  -v0[getIndex(x, HEIGHT-2)];
+    }
+    for(var y = 0; y < HEIGHT; y++) {
+        u0[getIndex(0, y)] =   -u0[getIndex(1, y)];
+        u0[getIndex(WIDTH-1, y)] =   -u0[getIndex(WIDTH-2, y)];
+        //v0[getIndex(0, y)] =   -v0[getIndex(1, y)];
+        //v0[getIndex(WIDTH-1, y)] =   -v0[getIndex(WIDTH-2, y)];
+    }
+    
+}
+function densityBoundary(){
+    for(var x = 0; x < WIDTH; x++) {
+        r[getIndex(x, 0)] =   0;
+        g[getIndex(x, 0)] =   0;
+        b[getIndex(x, 0)] =   0;
+        r[getIndex(x, HEIGHT-1)] =   0;
+        g[getIndex(x, HEIGHT-1)] =   0;
+        b[getIndex(x, HEIGHT-1)] =   0;
+    }
+    for(var y = 0; y < HEIGHT; y++) {
+        r[getIndex(0, y)] =   0;
+        r[getIndex(WIDTH-1, y)] =   0;
+        g[getIndex(0, y)] =   0;
+        g[getIndex(WIDTH-1, y)] =   0;
+        b[getIndex(0, y)] =   0;
+        b[getIndex(WIDTH-1, y)] =   0;
+    }
+}
+function subtractPressureGradient(){
+    for(var y = 1; y < HEIGHT-1; y++) {
+        for(var x = 1; x < WIDTH-1; x++) {
+            var x0 = p0[getIndex(x-1, y)],
+                x1 = p0[getIndex(x+1, y)],
+                y0 = p0[getIndex(x, y-1)],
+                y1 = p0[getIndex(x, y+1)],
+                dx = (x1-x0)/2,
+                dy = (y1-y0)/2;
+                u0[getIndex(x,y)] -= dx;
+                v0[getIndex(x,y)] -= dy;
+        }
+    }
+}
+function diffuseDensity(iterations){
+    var alpha = WIDTH * WIDTH * 1/60 *viscosity
+    var beta = 1/(4 + alpha)
+    
+    for(var i = 0; i < iterations; i++){
+        for(var y = 1; y < HEIGHT-1; y++) {
+            for(var x = 1; x < WIDTH-1; x++) {
+                var x0 = r[getIndex(x-1, y)],
+                    x1 = r[getIndex(x+1, y)],
+                    y0 = r[getIndex(x, y-1)],
+                    y1 = r[getIndex(x, y+1)];
+                r1[getIndex(x, y)] =  (x0 + x1 + y0 + y1 + alpha * r[getIndex(x, y)]) * beta;
+                x0 = g[getIndex(x-1, y)],
+                x1 = g[getIndex(x+1, y)],
+                y0 = g[getIndex(x, y-1)],
+                y1 = g[getIndex(x, y+1)];
+                g1[getIndex(x, y)] =  (x0 + x1 + y0 + y1 + alpha * g[getIndex(x, y)]) * beta;
+                x0 = b[getIndex(x-1, y)],
+                x1 = b[getIndex(x+1, y)],
+                y0 = b[getIndex(x, y-1)],
+                y1 = b[getIndex(x, y+1)];
+                b1[getIndex(x, y)] =  (x0 + x1 + y0 + y1 + alpha * b[getIndex(x, y)]) * beta;
+            }
+        }
+        var aux = r;
+        r = r1;
+        r1 = aux;
+
+        aux = g;
+        g = g1;
+        g1 = aux;
+
+        aux = b;
+        b = b1;
+        b1 = aux;
+    }
+}
+function advectDensity(){
+    for(var y = 1; y < HEIGHT-1; y++) {
+        for(var x = 1; x < WIDTH-1; x++) {
+            var vx = u0[getIndex(x, y)]*step,
+                vy = v0[getIndex(x, y)]*step;
+            
+            r1[getIndex(x, y)] =  bilerp(r, x+vx, y+vy);
+            g1[getIndex(x, y)] =  bilerp(g, x+vx, y+vy);
+            b1[getIndex(x, y)] =  bilerp(b, x+vx, y+vy);
+        }
+    }
+    var tmp1 = r;
+        r =r1;
+        r1 = tmp1;
+    var tmp2 = g;
+        g =g1;
+        g1 = tmp2;
+    var tmp3 = b;
+        b =b1;
+        b1 = tmp3;
+ }
+//utility functions
+
+function simulate(){
+    if(click)
+        addDensity();
+    if(paused){
+        return;
+    }
+    velocityboundary();
+
+
+    advect()
+    
+    velocityboundary();
+    //diffuse(20);
+    
+    addMouseForce(u0, v0)
+    
+    
+    computeDivergence();
+    // needs an even number of iterations
+    computePressure(30);
+    
+
+    subtractPressureGradient();
+
+    //density update
+
+    
+    
+    //diffuseDensity(20);
+    advectDensity();
+
+
+    
+    densityBoundary();
+
+
+
+    
+    
+    
+}
+function lerp(a, b, c){
+    c = c < 0 ? 0 : (c > 1 ? 1 : c);
+    //c = clamp(c, 0, 1);
+    return a * (1 - c) + b * c;
+}
+function addMouseForce(u, v){
+    var x = mouseX*sx,
+        y = mouseY*sy;
+    x = Math.floor(x)
+    y = Math.floor(y)
+    if(x < 1) x = 1;
+    if (x > WIDTH-2) x = WIDTH-2;
+    if(y < 1) y = 1;
+    if (y > HEIGHT-2) y = HEIGHT-2;
+        
+        
+    var dx = mouseX-lastMouseX,
+        dy = mouseY-lastMouseY;
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+    u[getIndex(x,y)] -= dx * 30;
+    v[getIndex(x,y)] -= dy * 30;
+    
+}
+function addDensity(){
+    var x = mouseX*sx,
+        y = mouseY*sy;
+    x = Math.floor(x)
+    y = Math.floor(y)
+    if(x < 1) x = 1;
+    if (x > WIDTH-2) x = WIDTH-2;
+    if(y < 1) y = 1;
+    if (y > HEIGHT-2) y = HEIGHT-2;
+        
+    
+    
+    for(var i = 1; i < HEIGHT-1; i++) {
+        for(var j = 1; j < WIDTH-1; j++){
+            dist = Math.sqrt((x-i ) * (x-i) +(y-j ) * (y-j));
+            if(dist > 5)
+                continue;
+            if(color=="r")
+                r[getIndex(i,j)] = 255;
+    
+            if(color=="g")
+                g[getIndex(i,j)] = 255;
+            if(color=="b")
+                b[getIndex(i,j)] = 255;
+        }
+    }
+        
+    
+}
+function bilerp(sample, x, y) {
+    if(x < 0.5) x = 0.5;
+    if(x > WIDTH - 1.5) x = WIDTH - 1.5;
+    if(y < 0.5) y = 0.5;
+    if(y > HEIGHT - 1.5) y = HEIGHT - 1.5;
+    var x0 = Math.floor(x),
+        y0 = Math.floor(y),
+        x1 = x0+1,
+        y1 = y0+1;
+        
+        
+        p00 = sample[getIndex(x0, y0)],
+        p01 = sample[getIndex(x0, y1)],
+        p10 = sample[getIndex(x1, y0)],
+        p11 = sample[getIndex(x1, y1)];
+        
+        
+    return  lerp(lerp(p00, p10, x-x0), lerp(p01, p11, x-x0), y-y0);
+
+}
+
+function draw(u, v, p){
+    var d = imageData.data,
+        di, pi, ui;
+
+    if(DensityDisplay){
+        for(var y = 0; y < HEIGHT; y++) {
+            for(var x = 0; x < WIDTH; x++) {
+                pi = (y*WIDTH+x);
+        
+                di = pi*4;
+
+                d[di+0] = r[getIndex(x, y)]
+                d[di+1] = g[getIndex(x, y)]
+                d[di+2] = b[getIndex(x, y)]
+            }
+        }
+    }
+    else{
+        for(var y = 0; y < HEIGHT; y++) {
+            for(var x = 0; x < WIDTH; x++) {
+                pi = (y*WIDTH+x);
+                di = pi*4;
+                d[di+0] = 128 +  128 * u[getIndex(x, y)];
+           
+                d[di+1] = 128 +  128 * v[getIndex(x, y)];
+                d[di+2] =0;
+            }
+        }
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+}
+function getIndex(x, y){
+    if(x < 0) x = 0;
+    if(x > WIDTH -1) x = WIDTH -1;
+    
+    if(y < 0) y = 0;
+    if(y > HEIGHT -1) y = HEIGHT -1;
+    
+    return y*WIDTH + x;
+}
+var requestAnimationFrame = (window.requestAnimationFrame       || 
+              window.webkitRequestAnimationFrame || 
+              window.mozRequestAnimationFrame    || 
+              window.oRequestAnimationFrame      || 
+              window.msRequestAnimationFrame     || 
+              function( callback ){
+                window.setTimeout(callback, 1000 / 60);
+              });
+
+function setCheckered(){
+    for(var i = 0; i < WIDTH; i++){
+        for(var j = 0; j < HEIGHT; j++){
+            
+            if((Math.floor(i/5) +Math.floor(j/5)) % 2 == 0){
+                r[getIndex(i,j)] = 255;
+                g[getIndex(i,j)] = 255;
+                b[getIndex(i,j)] = 255;
+            }
+            else{
+                r[getIndex(i,j)] = 0;
+                g[getIndex(i,j)] = 0;
+                b[getIndex(i,j)] = 0;
+            }
+        }
+    }
+}
+function setMonsaLisa(){
+    var c=document.getElementById("img_canvas");
+    var ctx=c.getContext("2d");
+    var img=document.getElementById("mona-lisa");
+    ctx.drawImage(img,0,0,150,150);
+    var imgd = ctx.getImageData(0, 0, 150, 150);
+    var pix = imgd.data;
+    for(var i = 0; i < r.length; i++){       
+            r[i] = pix[i * 4];
+            g[i] = pix[i * 4 + 1];
+            b[i] = pix[i * 4  + 2];  
+    }
+}
+function setForest(){
+    var c=document.getElementById("img_canvas");
+    var ctx=c.getContext("2d");
+    var img=document.getElementById("forest");
+    ctx.drawImage(img,0,0,150,150);
+    var imgd = ctx.getImageData(0, 0, 150, 150);
+    var pix = imgd.data;
+    for(var i = 0; i < r.length; i++){       
+            r[i] = pix[i * 4];
+            g[i] = pix[i * 4 + 1];
+            b[i] = pix[i * 4  + 2];  
+    }
+}
+function setOctopus(){
+    var c=document.getElementById("img_canvas");
+    var ctx=c.getContext("2d");
+    var img=document.getElementById("octopus");
+    ctx.drawImage(img,0,0,150,150);
+    var imgd = ctx.getImageData(0, 0, 150, 150);
+    var pix = imgd.data;
+    for(var i = 0; i < r.length; i++){       
+            r[i] = pix[i * 4];
+            g[i] = pix[i * 4 + 1];
+            b[i] = pix[i * 4  + 2];  
+    }
+}
+function setSunset(){
+    var c=document.getElementById("img_canvas");
+    var ctx=c.getContext("2d");
+    var img=document.getElementById("sunset");
+    ctx.drawImage(img,0,0,150,150);
+    var imgd = ctx.getImageData(0, 0, 150, 150);
+    var pix = imgd.data;
+    for(var i = 0; i < r.length; i++){       
+            r[i] = pix[i * 4];
+            g[i] = pix[i * 4 + 1];
+            b[i] = pix[i * 4  + 2];  
+    }
+}
+function togglePause(){
+    paused = !paused;
+}
+function resetVelocity(){
+    for(var i = 0; i < WIDTH; i++){
+        for(var j = 0; j < HEIGHT; j++){
+            
+            
+            u0[getIndex(i,j)] = 0;
+            v0[getIndex(i,j)] = 0;
+            p0[getIndex(i,j)] = 0;
+            
+        }
+    }
+}
+function resetDensity(){
+    for(var i = 0; i < WIDTH; i++){
+        for(var j = 0; j < HEIGHT; j++){
+            
+            
+            r[getIndex(i,j)] = 0;
+            g[getIndex(i,j)] = 0;
+            b[getIndex(i,j)] = 0;
+            
+        }
+    }
+}
+function printDensity(){
+    var count = 0;
+    for(var i = 1 ; i < WIDTH -1; i++){
+        for(var j= 1 ; j < HEIGHT -1; j++){
+            count += r[getIndex(i,j)]
+        }
+        
+    }
+    console.log(count)
+}
+
+//setCheckered();
+(function animate(){
+    simulate();
+    draw(u0, v0, p0);
+    requestAnimationFrame(animate);
+})();
+
+
+
+
+</script>
 </html>
