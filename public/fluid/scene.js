@@ -470,7 +470,7 @@ function start_simulation(simulation_size, mouse_size){
             diffuseMaterial.uniforms.alpha.value = -1 ;
             diffuseMaterial.uniforms.rBeta.value = 0.25;
             diffuseMaterial.uniforms.b.value = divergenceTexture;
-            for (var i = 0; i <30; i ++ ){
+            for (var i = 0; i <50; i ++ ){
                 diffuseMaterial.uniforms.x.value = pressureTexture;
                 renderer.render(diffuseScene,camera,pressureTexture2,true);
                 swapPressure();
