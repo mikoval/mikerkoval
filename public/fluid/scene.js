@@ -470,7 +470,7 @@ function start_simulation(simulation_size, mouse_size){
             diffuseMaterial.uniforms.alpha.value = -1 ;
             diffuseMaterial.uniforms.rBeta.value = 0.25;
             diffuseMaterial.uniforms.b.value = divergenceTexture;
-            for (var i = 0; i <50; i ++ ){
+            for (var i = 0; i <30; i ++ ){
                 diffuseMaterial.uniforms.x.value = pressureTexture;
                 renderer.render(diffuseScene,camera,pressureTexture2,true);
                 swapPressure();
@@ -508,11 +508,10 @@ function start_simulation(simulation_size, mouse_size){
             swapDensity();
     }
     function render() {
-
-        requestAnimationFrame( render );
-
         
 
+        
+        console.time('render');
         if(pressed){
             addDensityMaterial.uniforms.densitySource.value.x = 5.0;
             if(color == 1.0)
@@ -530,14 +529,13 @@ function start_simulation(simulation_size, mouse_size){
         }
 
         if(!paused){
-            
 
             //velocity step
             velocityStep();
             //density step
             densityStep();
            
-            
+
          
 
 
@@ -556,10 +554,20 @@ function start_simulation(simulation_size, mouse_size){
         else{
             quad.material.map = densityA;
         }
+        
         renderer.render( scene, camera );
+        console.timeEnd('render');
+        setTimeout( function() {
+
+            requestAnimationFrame( render );
+
+        }, 1000 / 60 );
         
 
-
     }
+
+    
     render();
+
+
 }
