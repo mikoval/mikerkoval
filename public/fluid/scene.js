@@ -295,18 +295,20 @@ function start_simulation(simulation_size, mouse_size){
     
 
     
-    $(document).on("touchmove", function(event){
-        UpdateMousePosition(event.touches[0].clientX,event.touches[0].clientY)
+    $(document).on("touchmove", function(e){
+        e.preventDefault();
+        UpdateMousePosition(e.touches[0].clientX,e.touches[0].clientY)
 
 
     }) 
-    $(document).on("touchstart", function(event){
+    $(document).on("touchstart", function(e){
+        e.preventDefault();
         color =  Math.floor(Math.random() * 3) + 1;
         pressed = true
 
     }) 
-    $(document).on("touchEnd", function(event){
-   
+    $(document).on("touchEnd", function(e){
+    e.preventDefault();
         pressed = true
 
     }) 
