@@ -26,7 +26,10 @@ function start_simulation(simulation_size, mouse_size){
     document.getElementsByClassName('choose-resolution')[0].style.display = 'none';
     var width = simulation_size;
     var height = simulation_size;
-    
+
+    if($( window ).width() < $( window ).height() ){
+        $("#controls").hide();
+    }
     mouseRadius = mouse_size;
 
     function scene_setup(){
@@ -296,21 +299,18 @@ function start_simulation(simulation_size, mouse_size){
 
     
     $(document).on("touchmove", function(e){
-        alert("touch move")
 
         UpdateMousePosition(e.touches[0].clientX,e.touches[0].clientY)
 
 
     }) 
     $(document).on("touchstart mousedown", function(e){
-        alert("touch start")
         
         color =  Math.floor(Math.random() * 3) + 1;
         pressed = true
 
     }) 
     $(document).on("touchEnd mouseup", function(e){
-        alert("touch end")
  
         pressed = true
 
