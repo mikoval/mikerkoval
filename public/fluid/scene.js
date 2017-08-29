@@ -81,13 +81,13 @@ function start_simulation(simulation_size, mouse_size){
     function buffer_texture_setup(){
         //Create buffer scene
 
-        velocityA = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.HalfFloatType,});
-        velocityB = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.HalfFloatType} );
-        divergenceTexture = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false,  minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.HalfFloatType});
-        pressureTexture = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.HalfFloatType});
-        pressureTexture2 = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.HalfFloatType});
-        densityA = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.HalfFloatType,});
-        densityB = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.HalfFloatType} );
+        velocityA = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.FloatType,});
+        velocityB = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType} );
+        divergenceTexture = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false,  minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.FloatType});
+        pressureTexture = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.FloatType});
+        pressureTexture2 = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.FloatType});
+        densityA = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: THREE.FloatType,});
+        densityB = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: THREE.FloatType} );
 
 
         plane = new THREE.PlaneBufferGeometry( width, height );
@@ -251,6 +251,7 @@ function start_simulation(simulation_size, mouse_size){
     buffer_texture_setup();
     pressed = false;
     function UpdateMousePosition(X,Y){
+        console.log(X + ", " + Y);
         var rect = canvas.getBoundingClientRect(),
         windowleft = rect.left,
         windowtop = rect.top;
@@ -291,15 +292,11 @@ function start_simulation(simulation_size, mouse_size){
         UpdateMousePosition(event.clientX,event.clientY)
 
     }
-    document.onmousemove = function(event){
-
-        UpdateMousePosition(event.clientX,event.clientY)
-
-    }
+    
     document.addEventListener('touchmove', function(event) {
-        UpdateMousePosition(event.clientX,event.clientY)
+        UpdateMousePosition(event.touches[0].clientX,event.touches[0].clientY)
 
-    }, false);
+    });
     document.onmousedown = function(event){
         pressed = true;
     }
@@ -519,7 +516,7 @@ function start_simulation(simulation_size, mouse_size){
         
 
         
-        console.time('render');
+        
         if(pressed){
             addDensityMaterial.uniforms.densitySource.value.x = 5.0;
             if(color == 1.0)
@@ -564,7 +561,7 @@ function start_simulation(simulation_size, mouse_size){
         }
         
         renderer.render( scene, camera );
-        console.timeEnd('render');
+      
         setTimeout( function() {
 
             requestAnimationFrame( render );
