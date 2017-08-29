@@ -251,7 +251,7 @@ function start_simulation(simulation_size, mouse_size){
     buffer_texture_setup();
     pressed = false;
     function UpdateMousePosition(X,Y){
-        console.log(X + ", " + Y);
+       
         var rect = canvas.getBoundingClientRect(),
         windowleft = rect.left,
         windowtop = rect.top;
@@ -304,6 +304,19 @@ function start_simulation(simulation_size, mouse_size){
         pressed = false
 
     }
+    document.touchend = function(event){
+        pressed = false;
+    }
+    $(document).on("touchstart", function(event){
+        color =  Math.floor(Math.random() * 3);
+        pressed = true
+
+    }) 
+    $(document).on("touchEnd", function(event){
+   
+        pressed = true
+
+    }) 
     document.onkeypress = function(event){
         if(event.key == "r"){
             color = 1.0;
