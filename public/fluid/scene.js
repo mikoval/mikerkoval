@@ -293,22 +293,15 @@ function start_simulation(simulation_size, mouse_size){
 
     }
     
-    document.addEventListener('touchmove', function(event) {
+
+    
+    $(document).on("touchmove", function(event){
         UpdateMousePosition(event.touches[0].clientX,event.touches[0].clientY)
 
-    });
-    document.onmousedown = function(event){
-        pressed = true;
-    }
-    document.onmouseup = function(event){
-        pressed = false
 
-    }
-    document.touchend = function(event){
-        pressed = false;
-    }
+    }) 
     $(document).on("touchstart", function(event){
-        color =  Math.floor(Math.random() * 3);
+        color =  Math.floor(Math.random() * 3) + 1;
         pressed = true
 
     }) 
