@@ -320,7 +320,7 @@ function start_simulation(simulation_size, mouse_size){
     }) 
     $(document).on("touchEnd mouseup", function(e){
  
-        pressed = true
+        pressed = false
 
     }) 
 
