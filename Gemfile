@@ -9,6 +9,7 @@ gem 'threejs-rails', git: 'git://github.com/marvindanig/threejs-rails.git'
 gem 'jquery-turbolinks'
 
 gem 'rails_12factor'
+
 group :development, :test do
   gem 'sqlite3', '1.3.12'
   gem 'byebug',  '9.0.0', platform: :mri

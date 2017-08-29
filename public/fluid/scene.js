@@ -291,7 +291,15 @@ function start_simulation(simulation_size, mouse_size){
         UpdateMousePosition(event.clientX,event.clientY)
 
     }
+    document.onmousemove = function(event){
 
+        UpdateMousePosition(event.clientX,event.clientY)
+
+    }
+    document.addEventListener('touchmove', function(event) {
+        UpdateMousePosition(event.clientX,event.clientY)
+
+    }, false);
     document.onmousedown = function(event){
         pressed = true;
     }
