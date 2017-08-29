@@ -22,14 +22,13 @@ var octopusTexture = loader.load('/fluid/forest.jpg')
 var forestTexture = loader.load('/fluid/octopus.jpg')
 var monalisaTexture = loader.load('/fluid/monalisa.jpg')
 var hutTexture = loader.load('/fluid/hut.jpg')
+
 function start_simulation(simulation_size, mouse_size){
     document.getElementsByClassName('choose-resolution')[0].style.display = 'none';
     var width = simulation_size;
     var height = simulation_size;
 
-    if($( window ).width() < $( window ).height() ){
-        $("#controls").hide();
-    }
+    
     mouseRadius = mouse_size;
 
     function scene_setup(){
