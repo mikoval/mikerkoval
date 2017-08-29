@@ -89,6 +89,9 @@ function start_simulation(simulation_size, mouse_size){
         else if(types.includes("OES_texture_half_float")){
             textureType = THREE.HalfFloatType;
         }
+        else{
+            alert("Phone must support float or half float textures");
+        }
         velocityA = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: textureType,});
         velocityB = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false, minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, type: textureType} );
         divergenceTexture = new THREE.WebGLRenderTarget( width/dimensions , height/dimensions, {depthBuffer: false, stencilBuffer:false,  minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter,type: textureType});
