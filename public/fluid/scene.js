@@ -297,24 +297,25 @@ function start_simulation(simulation_size, mouse_size){
     
     $(document).on("touchmove", function(e){
         alert("touch move")
-        e.preventDefault();
+
         UpdateMousePosition(e.touches[0].clientX,e.touches[0].clientY)
 
 
     }) 
-    $(document).on("touchstart", function(e){
+    $(document).on("touchstart mousedown", function(e){
         alert("touch start")
-        e.preventDefault();
+        
         color =  Math.floor(Math.random() * 3) + 1;
         pressed = true
 
     }) 
-    $(document).on("touchEnd", function(e){
+    $(document).on("touchEnd mouseup", function(e){
         alert("touch end")
-    e.preventDefault();
+ 
         pressed = true
 
     }) 
+
     document.onkeypress = function(event){
         if(event.key == "r"){
             color = 1.0;
